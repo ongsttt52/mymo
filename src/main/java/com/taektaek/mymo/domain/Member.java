@@ -37,9 +37,21 @@ public class Member {
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
     private List<MusicLog> musicLogs = new ArrayList<>();
 
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
+    private List<Memo> memos = new ArrayList<>();
+
     public Member(String username, String email, String password) {
         this.username = username;
         this.email = email;
+        this.password = password;
+    }
+
+    public void updateProfile(String username, String email) {
+        this.username = username;
+        this.email = email;
+    }
+
+    public void updatePassword(String password) {
         this.password = password;
     }
 }
