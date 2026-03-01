@@ -57,6 +57,18 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
 
+    @ExceptionHandler(InvalidCredentialsException.class)
+    protected ResponseEntity<ErrorResponse> handleInvalidCredentialsException(InvalidCredentialsException e) {
+        ErrorResponse response = ErrorResponse.of(e.getErrorCode());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+
+    @ExceptionHandler(ResourceAccessDeniedException.class)
+    protected ResponseEntity<ErrorResponse> handleResourceAccessDeniedException(ResourceAccessDeniedException e) {
+        ErrorResponse response = ErrorResponse.of(e.getErrorCode());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     protected ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(
             MethodArgumentNotValidException e) {
