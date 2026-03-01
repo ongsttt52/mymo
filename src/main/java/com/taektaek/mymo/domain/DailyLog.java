@@ -29,11 +29,15 @@ public class DailyLog extends BaseEntity {
     @JoinColumn(name = "member_id")
     private Member member;
 
-    // 생성자
     public DailyLog(LocalDate date, String resolution, String reflection, Member member) {
         this.date = date;
         this.resolution = resolution;
         this.reflection = reflection;
         this.member = member;
+    }
+
+    public void update(String resolution, String reflection) {
+        this.resolution = resolution;
+        this.reflection = reflection;
     }
 }
