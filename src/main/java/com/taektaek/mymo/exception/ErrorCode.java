@@ -18,6 +18,10 @@ public enum ErrorCode {
 
     MUSIC_LOG_NOT_FOUND("MUSIC_LOG_001", "음악 기록을 찾을 수 없습니다."),
 
+    UNAUTHORIZED("AUTH_001", "인증이 필요합니다."),
+    INVALID_CREDENTIALS("AUTH_002", "이메일 또는 비밀번호가 올바르지 않습니다."),
+    ACCESS_DENIED("AUTH_003", "접근 권한이 없습니다."),
+
     INVALID_INPUT("COMMON_001", "입력값이 올바르지 않습니다."),
     INTERNAL_SERVER_ERROR("COMMON_002", "서버 내부 오류가 발생했습니다.");
 
