@@ -8,6 +8,7 @@ import com.taektaek.mymo.dto.dailylog.DailyLogUpdateRequest;
 import com.taektaek.mymo.exception.DailyLogNotFoundException;
 import com.taektaek.mymo.exception.DuplicateDailyLogDateException;
 import com.taektaek.mymo.exception.MemberNotFoundException;
+import com.taektaek.mymo.exception.ResourceAccessDeniedException;
 import com.taektaek.mymo.repository.DailyLogRepository;
 import com.taektaek.mymo.repository.MemberRepository;
 
@@ -38,8 +39,9 @@ public class DailyLogService {
         return DailyLogResponse.from(savedDailyLog);
     }
 
-    public DailyLogResponse getDailyLog(Long id) {
+    public DailyLogResponse getDailyLog(Long id, Long memberId) {
         DailyLog dailyLog = findDailyLogById(id);
+        validateOwnership(dailyLog, memberId);
         return DailyLogResponse.from(dailyLog);
     }
 
@@ -50,15 +52,17 @@ public class DailyLogService {
     }
 
     @Transactional
-    public DailyLogResponse updateDailyLog(Long id, DailyLogUpdateRequest request) {
+    public DailyLogResponse updateDailyLog(Long id, Long memberId, DailyLogUpdateRequest request) {
         DailyLog dailyLog = findDailyLogById(id);
+        validateOwnership(dailyLog, memberId);
         dailyLog.update(request.resolution(), request.reflection());
         return DailyLogResponse.from(dailyLog);
     }
 
     @Transactional
-    public void deleteDailyLog(Long id) {
+    public void deleteDailyLog(Long id, Long memberId) {
         DailyLog dailyLog = findDailyLogById(id);
+        validateOwnership(dailyLog, memberId);
         dailyLogRepository.delete(dailyLog);
     }
 
@@ -75,6 +79,12 @@ public class DailyLogService {
     private void validateDuplicateDate(Long memberId, DailyLogCreateRequest request) {
         if (dailyLogRepository.existsByMemberIdAndDate(memberId, request.date())) {
             throw new DuplicateDailyLogDateException();
+        }
+    }
+
+    private void validateOwnership(DailyLog dailyLog, Long memberId) {
+        if (!dailyLog.getMember().getId().equals(memberId)) {
+            throw new ResourceAccessDeniedException();
         }
     }
 }

@@ -7,6 +7,7 @@ import com.taektaek.mymo.dto.musiclog.MusicLogResponse;
 import com.taektaek.mymo.dto.musiclog.MusicLogUpdateRequest;
 import com.taektaek.mymo.exception.MemberNotFoundException;
 import com.taektaek.mymo.exception.MusicLogNotFoundException;
+import com.taektaek.mymo.exception.ResourceAccessDeniedException;
 import com.taektaek.mymo.repository.MemberRepository;
 import com.taektaek.mymo.repository.MusicLogRepository;
 
@@ -39,8 +40,9 @@ public class MusicLogService {
         return MusicLogResponse.from(savedMusicLog);
     }
 
-    public MusicLogResponse getMusicLog(Long id) {
+    public MusicLogResponse getMusicLog(Long id, Long memberId) {
         MusicLog musicLog = findMusicLogById(id);
+        validateOwnership(musicLog, memberId);
         return MusicLogResponse.from(musicLog);
     }
 
@@ -51,8 +53,9 @@ public class MusicLogService {
     }
 
     @Transactional
-    public MusicLogResponse updateMusicLog(Long id, MusicLogUpdateRequest request) {
+    public MusicLogResponse updateMusicLog(Long id, Long memberId, MusicLogUpdateRequest request) {
         MusicLog musicLog = findMusicLogById(id);
+        validateOwnership(musicLog, memberId);
         musicLog.update(
                 request.title(), request.artist(), request.album(), request.genre(),
                 request.youtubeUrl(), request.description(), request.date()
@@ -61,8 +64,9 @@ public class MusicLogService {
     }
 
     @Transactional
-    public void deleteMusicLog(Long id) {
+    public void deleteMusicLog(Long id, Long memberId) {
         MusicLog musicLog = findMusicLogById(id);
+        validateOwnership(musicLog, memberId);
         musicLogRepository.delete(musicLog);
     }
 
@@ -74,5 +78,11 @@ public class MusicLogService {
     private Member findMemberById(Long memberId) {
         return memberRepository.findById(memberId)
                 .orElseThrow(MemberNotFoundException::new);
+    }
+
+    private void validateOwnership(MusicLog musicLog, Long memberId) {
+        if (!musicLog.getMember().getId().equals(memberId)) {
+            throw new ResourceAccessDeniedException();
+        }
     }
 }
