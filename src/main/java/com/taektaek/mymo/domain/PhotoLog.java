@@ -39,4 +39,11 @@ public class PhotoLog extends BaseEntity {
         this.date = date;
         this.member = member;
     }
+
+    public void update(String imageUrl, String location, String description, LocalDate date) {
+        this.imageUrl = imageUrl;
+        this.location = location;
+        this.description = description;
+        this.date = date;
+    }
 }
