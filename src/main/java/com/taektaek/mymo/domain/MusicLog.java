@@ -10,7 +10,7 @@ import java.time.LocalDate;
 @Table(name = "music_logs")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class MusicLog {
+public class MusicLog extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -36,7 +36,8 @@ public class MusicLog {
     @JoinColumn(name = "member_id")
     private Member member;
 
-    public MusicLog(String title, String artist, String album, String genre, String youtubeUrl, String description, LocalDate date, Member member) {
+    public MusicLog(String title, String artist, String album, String genre,
+                    String youtubeUrl, String description, LocalDate date, Member member) {
         this.title = title;
         this.artist = artist;
         this.album = album;
@@ -45,5 +46,16 @@ public class MusicLog {
         this.description = description;
         this.date = date;
         this.member = member;
+    }
+
+    public void update(String title, String artist, String album, String genre,
+                       String youtubeUrl, String description, LocalDate date) {
+        this.title = title;
+        this.artist = artist;
+        this.album = album;
+        this.genre = genre;
+        this.youtubeUrl = youtubeUrl;
+        this.description = description;
+        this.date = date;
     }
 }

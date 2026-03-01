@@ -10,7 +10,7 @@ import java.time.LocalDate;
 @Table(name = "photo_logs")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class PhotoLog {
+public class PhotoLog extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,5 +38,12 @@ public class PhotoLog {
         this.description = description;
         this.date = date;
         this.member = member;
+    }
+
+    public void update(String imageUrl, String location, String description, LocalDate date) {
+        this.imageUrl = imageUrl;
+        this.location = location;
+        this.description = description;
+        this.date = date;
     }
 }

@@ -21,8 +21,38 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
+    @ExceptionHandler(DailyLogNotFoundException.class)
+    protected ResponseEntity<ErrorResponse> handleDailyLogNotFoundException(DailyLogNotFoundException e) {
+        ErrorResponse response = ErrorResponse.of(e.getErrorCode());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    @ExceptionHandler(MemoNotFoundException.class)
+    protected ResponseEntity<ErrorResponse> handleMemoNotFoundException(MemoNotFoundException e) {
+        ErrorResponse response = ErrorResponse.of(e.getErrorCode());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    @ExceptionHandler(PhotoLogNotFoundException.class)
+    protected ResponseEntity<ErrorResponse> handlePhotoLogNotFoundException(PhotoLogNotFoundException e) {
+        ErrorResponse response = ErrorResponse.of(e.getErrorCode());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    @ExceptionHandler(MusicLogNotFoundException.class)
+    protected ResponseEntity<ErrorResponse> handleMusicLogNotFoundException(MusicLogNotFoundException e) {
+        ErrorResponse response = ErrorResponse.of(e.getErrorCode());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
     @ExceptionHandler(DuplicateMemberException.class)
     protected ResponseEntity<ErrorResponse> handleDuplicateMemberException(DuplicateMemberException e) {
+        ErrorResponse response = ErrorResponse.of(e.getErrorCode());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
+    @ExceptionHandler(DuplicateDailyLogDateException.class)
+    protected ResponseEntity<ErrorResponse> handleDuplicateDailyLogDateException(DuplicateDailyLogDateException e) {
         ErrorResponse response = ErrorResponse.of(e.getErrorCode());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
