@@ -7,6 +7,7 @@ import com.taektaek.mymo.dto.memo.MemoResponse;
 import com.taektaek.mymo.dto.memo.MemoUpdateRequest;
 import com.taektaek.mymo.exception.MemberNotFoundException;
 import com.taektaek.mymo.exception.MemoNotFoundException;
+import com.taektaek.mymo.exception.ResourceAccessDeniedException;
 import com.taektaek.mymo.repository.MemberRepository;
 import com.taektaek.mymo.repository.MemoRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -100,7 +101,7 @@ class MemoServiceTest {
             given(memoRepository.findById(1L)).willReturn(Optional.of(memo));
 
             // when
-            MemoResponse response = memoService.getMemo(1L);
+            MemoResponse response = memoService.getMemo(1L, 1L);
 
             // then
             assertThat(response.id()).isEqualTo(1L);
@@ -114,8 +115,21 @@ class MemoServiceTest {
             given(memoRepository.findById(999L)).willReturn(Optional.empty());
 
             // when & then
-            assertThatThrownBy(() -> memoService.getMemo(999L))
+            assertThatThrownBy(() -> memoService.getMemo(999L, 1L))
                     .isInstanceOf(MemoNotFoundException.class);
+        }
+
+        @Test
+        @DisplayName("다른 회원의 메모를 조회하면 예외를 던진다")
+        void accessDenied() {
+            // given
+            Member member = createMember(1L);
+            Memo memo = createMemo(1L, "메모 내용", member);
+            given(memoRepository.findById(1L)).willReturn(Optional.of(memo));
+
+            // when & then
+            assertThatThrownBy(() -> memoService.getMemo(1L, 2L))
+                    .isInstanceOf(ResourceAccessDeniedException.class);
         }
 
         @Test
@@ -154,7 +168,7 @@ class MemoServiceTest {
             given(memoRepository.findById(1L)).willReturn(Optional.of(memo));
 
             // when
-            MemoResponse response = memoService.updateMemo(1L, request);
+            MemoResponse response = memoService.updateMemo(1L, 1L, request);
 
             // then
             assertThat(response.content()).isEqualTo("새 내용");
@@ -168,8 +182,23 @@ class MemoServiceTest {
             given(memoRepository.findById(999L)).willReturn(Optional.empty());
 
             // when & then
-            assertThatThrownBy(() -> memoService.updateMemo(999L, request))
+            assertThatThrownBy(() -> memoService.updateMemo(999L, 1L, request))
                     .isInstanceOf(MemoNotFoundException.class);
+        }
+
+        @Test
+        @DisplayName("다른 회원의 메모를 수정하면 예외를 던진다")
+        void accessDenied() {
+            // given
+            Member member = createMember(1L);
+            Memo memo = createMemo(1L, "메모 내용", member);
+            MemoUpdateRequest request = new MemoUpdateRequest("새 내용");
+
+            given(memoRepository.findById(1L)).willReturn(Optional.of(memo));
+
+            // when & then
+            assertThatThrownBy(() -> memoService.updateMemo(1L, 2L, request))
+                    .isInstanceOf(ResourceAccessDeniedException.class);
         }
     }
 
@@ -186,7 +215,7 @@ class MemoServiceTest {
             given(memoRepository.findById(1L)).willReturn(Optional.of(memo));
 
             // when
-            memoService.deleteMemo(1L);
+            memoService.deleteMemo(1L, 1L);
 
             // then
             verify(memoRepository).delete(memo);
@@ -199,8 +228,21 @@ class MemoServiceTest {
             given(memoRepository.findById(999L)).willReturn(Optional.empty());
 
             // when & then
-            assertThatThrownBy(() -> memoService.deleteMemo(999L))
+            assertThatThrownBy(() -> memoService.deleteMemo(999L, 1L))
                     .isInstanceOf(MemoNotFoundException.class);
+        }
+
+        @Test
+        @DisplayName("다른 회원의 메모를 삭제하면 예외를 던진다")
+        void accessDenied() {
+            // given
+            Member member = createMember(1L);
+            Memo memo = createMemo(1L, "메모 내용", member);
+            given(memoRepository.findById(1L)).willReturn(Optional.of(memo));
+
+            // when & then
+            assertThatThrownBy(() -> memoService.deleteMemo(1L, 2L))
+                    .isInstanceOf(ResourceAccessDeniedException.class);
         }
     }
 }
