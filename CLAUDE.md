@@ -59,8 +59,10 @@
 | 기술 | 용도 |
 |------|------|
 | Spring Data JPA | ORM 및 데이터 접근 |
+| Spring Security | 인증/인가 |
 | Spring Validation | 입력값 검증 (Bean Validation) |
 | Spring Web | REST API |
+| jjwt 0.12.6 | JWT 토큰 생성/검증 |
 | H2 Database | 개발용 인메모리 데이터베이스 |
 | Lombok | 보일러플레이트 코드 제거 |
 | Spring Boot DevTools | 개발 시 핫 리로드 |
@@ -92,7 +94,7 @@ Member (1)
 | id | BIGINT | PK, AUTO_INCREMENT | |
 | username | VARCHAR | UNIQUE, NOT NULL | 사용자명 |
 | email | VARCHAR | UNIQUE, NOT NULL | 이메일 |
-| password | VARCHAR | NOT NULL | 비밀번호 (암호화 미적용) |
+| password | VARCHAR | NOT NULL | 비밀번호 (BCrypt 암호화) |
 
 ### daily_logs (일일 기록)
 
@@ -148,13 +150,34 @@ src/
 ├── main/
 │   ├── java/com/taektaek/mymo/
 │   │   ├── MymoApplication.java         # Spring Boot 진입점
+│   │   ├── config/                      # 설정
+│   │   │   ├── JwtProperties.java       # JWT 설정 프로퍼티
+│   │   │   ├── SecurityConfig.java      # Spring Security 설정
+│   │   │   └── WebMvcConfig.java        # ArgumentResolver 등록
 │   │   ├── domain/                      # JPA 엔티티
 │   │   │   ├── Member.java
 │   │   │   ├── DailyLog.java
 │   │   │   ├── Memo.java
 │   │   │   ├── PhotoLog.java
 │   │   │   └── MusicLog.java
+│   │   ├── dto/                         # 요청/응답 DTO
+│   │   │   ├── auth/                    # 인증 관련 DTO
+│   │   │   ├── member/
+│   │   │   ├── dailylog/
+│   │   │   ├── memo/
+│   │   │   ├── photolog/
+│   │   │   └── musiclog/
+│   │   ├── exception/                   # 예외 처리
 │   │   ├── repository/                  # Spring Data JPA Repository
+│   │   ├── security/                    # 보안
+│   │   │   ├── CurrentMemberId.java     # 커스텀 어노테이션
+│   │   │   ├── CurrentMemberIdArgumentResolver.java
+│   │   │   ├── CustomUserDetails.java
+│   │   │   ├── CustomUserDetailsService.java
+│   │   │   └── jwt/                     # JWT 관련
+│   │   │       ├── JwtAuthenticationEntryPoint.java
+│   │   │       ├── JwtAuthenticationFilter.java
+│   │   │       └── JwtTokenProvider.java
 │   │   ├── service/                     # 비즈니스 로직
 │   │   └── controller/                  # REST API 컨트롤러
 │   └── resources/
@@ -163,7 +186,8 @@ src/
 │       └── templates/                   # 템플릿 파일
 └── test/
     └── java/com/taektaek/mymo/
-        └── MymoApplicationTests.java    # 테스트
+        ├── security/jwt/                # JWT 테스트
+        └── service/                     # 서비스 테스트
 ```
 
 ---
@@ -204,13 +228,13 @@ src/
 | 계층 | 상태 | 비고 |
 |------|------|------|
 | Domain (Entity) | 완료 | 5개 엔티티 + 관계 정의 |
-| Repository | 미구현 | JPA Repository 인터페이스 필요 |
-| Service | 미구현 | 비즈니스 로직 구현 필요 |
-| Controller | 미구현 | REST API 엔드포인트 정의 필요 |
-| DTO | 미구현 | 요청/응답 DTO 클래스 필요 |
-| 예외 처리 | 미구현 | 커스텀 예외 + GlobalExceptionHandler 필요 |
-| 보안 | 미구현 | Spring Security + 비밀번호 암호화 필요 |
-| 테스트 | 기본만 | contextLoads 테스트만 존재 |
+| Repository | 완료 | JPA Repository 5개 |
+| Service | 완료 | CRUD + 소유권 검증 |
+| Controller | 완료 | REST API + JWT 인증 |
+| DTO | 완료 | 요청/응답 + 인증 DTO |
+| 예외 처리 | 완료 | 커스텀 예외 + GlobalExceptionHandler |
+| 보안 | 완료 | Spring Security + JWT + BCrypt |
+| 테스트 | 완료 | Service 56개 + JWT 7개 통과 |
 
 ---
 
@@ -218,5 +242,6 @@ src/
 
 - `Memo` 엔티티는 `@EntityListeners(AuditingEntityListener.class)`를 사용하므로, JPA Auditing 설정(`@EnableJpaAuditing`)이 필요함
 - 현재 H2 인메모리 DB 사용 중이므로 서버 재시작 시 데이터가 초기화됨
-- `Member.password`는 평문 저장 상태이며, 추후 BCrypt 등 암호화 적용 필요
+- `Member.password`는 BCrypt로 암호화하여 저장
+- JWT secret은 `application.yaml`에 하드코딩된 개발용 키 사용 중. 프로덕션 배포 시 환경변수로 교체 필요
 - `PhotoLog`에 mood, tags 컬럼 추가 예정 (코드 주석 참고)

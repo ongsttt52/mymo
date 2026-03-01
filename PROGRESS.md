@@ -69,18 +69,55 @@
 | PUT | `/api/music-logs/{id}` | 음악 기록 수정 | 200 |
 | DELETE | `/api/music-logs/{id}` | 음악 기록 삭제 | 204 |
 
+### Spring Security + JWT 인증 도입
+- **PR**: [#4](https://github.com/ongsttt52/mymo/pull/4) (`feat/security-jwt` → `dev`, 스쿼시 머지)
+- Spring Security + JWT(jjwt 0.12.6) 의존성 추가
+- JWT 인프라: `JwtProperties`, `JwtTokenProvider` (토큰 생성/검증/파싱)
+- Spring Security 설정: `SecurityConfig` (CSRF 비활성화, stateless 세션, JWT 필터)
+- `CustomUserDetails`, `CustomUserDetailsService`, `JwtAuthenticationFilter`, `JwtAuthenticationEntryPoint`
+- 인증 API: `AuthService` + `AuthController` (`POST /api/auth/signup`, `POST /api/auth/login`)
+- 비밀번호 BCrypt 암호화 적용
+- `@CurrentMemberId` 커스텀 어노테이션 + `CurrentMemberIdArgumentResolver`로 JWT에서 memberId 자동 추출
+- `MemberController`: `POST /api/members` → `POST /api/auth/signup`으로 이관, `/{id}` → `/me` 엔드포인트 변경
+- 4개 도메인 서비스에 리소스 소유권 검증 (`validateOwnership`) 추가 → 다른 사용자 리소스 접근 시 403
+- `ErrorCode`에 `UNAUTHORIZED`, `INVALID_CREDENTIALS`, `ACCESS_DENIED` 추가
+- `InvalidCredentialsException`, `ResourceAccessDeniedException` 예외 추가
+- 테스트: `JwtTokenProviderTest` 7개, `AuthServiceTest` 5개 신규 + 기존 서비스 테스트 시그니처 변경 및 소유권 검증 실패 테스트 추가 (전체 통과)
+
+#### API 엔드포인트 (변경 후)
+| Method | URI | 설명 | 인증 | 응답 |
+|--------|-----|------|------|------|
+| POST | `/api/auth/signup` | 회원가입 | 불필요 | 201 |
+| POST | `/api/auth/login` | 로그인 (JWT 발급) | 불필요 | 200 |
+| GET | `/api/members/me` | 내 정보 조회 | 필요 | 200 |
+| PUT | `/api/members/me` | 내 정보 수정 | 필요 | 200 |
+| DELETE | `/api/members/me` | 회원 탈퇴 | 필요 | 204 |
+| POST | `/api/daily-logs` | 일일 기록 생성 | 필요 | 201 |
+| GET | `/api/daily-logs/{id}` | 일일 기록 단건 조회 (소유권 검증) | 필요 | 200 |
+| GET | `/api/daily-logs` | 내 일일 기록 목록 조회 | 필요 | 200 |
+| PUT | `/api/daily-logs/{id}` | 일일 기록 수정 (소유권 검증) | 필요 | 200 |
+| DELETE | `/api/daily-logs/{id}` | 일일 기록 삭제 (소유권 검증) | 필요 | 204 |
+| POST | `/api/memos` | 메모 생성 | 필요 | 201 |
+| GET | `/api/memos/{id}` | 메모 단건 조회 (소유권 검증) | 필요 | 200 |
+| GET | `/api/memos` | 내 메모 목록 조회 | 필요 | 200 |
+| PUT | `/api/memos/{id}` | 메모 수정 (소유권 검증) | 필요 | 200 |
+| DELETE | `/api/memos/{id}` | 메모 삭제 (소유권 검증) | 필요 | 204 |
+| POST | `/api/photo-logs` | 사진 기록 생성 | 필요 | 201 |
+| GET | `/api/photo-logs/{id}` | 사진 기록 단건 조회 (소유권 검증) | 필요 | 200 |
+| GET | `/api/photo-logs` | 내 사진 기록 목록 조회 | 필요 | 200 |
+| PUT | `/api/photo-logs/{id}` | 사진 기록 수정 (소유권 검증) | 필요 | 200 |
+| DELETE | `/api/photo-logs/{id}` | 사진 기록 삭제 (소유권 검증) | 필요 | 204 |
+| POST | `/api/music-logs` | 음악 기록 생성 | 필요 | 201 |
+| GET | `/api/music-logs/{id}` | 음악 기록 단건 조회 (소유권 검증) | 필요 | 200 |
+| GET | `/api/music-logs` | 내 음악 기록 목록 조회 | 필요 | 200 |
+| PUT | `/api/music-logs/{id}` | 음악 기록 수정 (소유권 검증) | 필요 | 200 |
+| DELETE | `/api/music-logs/{id}` | 음악 기록 삭제 (소유권 검증) | 필요 | 204 |
+
 ---
 
 ## 미구현 작업
 
-### 인증/보안
-- Spring Security 도입
-- 비밀번호 BCrypt 암호화
-- JWT 기반 인증/인가
-- API에 인증 적용 (현재는 memberId를 RequestParam으로 직접 받는 구조)
-
 ### API 개선
-- 리소스 소유권 검증 (본인의 기록만 수정/삭제 가능하도록)
 - 페이징 처리 (목록 조회 API)
 - 검색/필터링 (날짜 범위, 키워드 등)
 
@@ -89,4 +126,5 @@
 
 ### 인프라
 - 프로덕션 DB 전환 (H2 → MySQL/PostgreSQL)
+- JWT secret 환경변수 분리
 - API 문서화 (Swagger/SpringDoc)
