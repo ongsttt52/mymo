@@ -36,7 +36,7 @@
 | DELETE | `/api/members/{id}` | 삭제 | 204 |
 
 ### 4개 도메인 CRUD 구현
-- **PR**: [#2](https://github.com/ongsttt52/mymo/pull/2) (`dev` → `main`, 스쿼시 머지)
+- **PR**: [#3](https://github.com/ongsttt52/mymo/pull/3) (`feat/domain-crud` → `dev`, 스쿼시 머지)
 - `BaseEntity` 리팩토링: 모든 엔티티에 `createdAt`, `updatedAt` 공통 적용
 - DailyLog CRUD: 날짜 중복 검증, 회원별 날짜 내림차순 조회
 - Memo CRUD: 회원별 수정일 내림차순 조회
@@ -73,11 +73,20 @@
 
 ## 미구현 작업
 
-### 보안
+### 인증/보안
 - Spring Security 도입
 - 비밀번호 BCrypt 암호화
-- 인증/인가 (JWT 등)
+- JWT 기반 인증/인가
+- API에 인증 적용 (현재는 memberId를 RequestParam으로 직접 받는 구조)
 
-### 기타
+### API 개선
+- 리소스 소유권 검증 (본인의 기록만 수정/삭제 가능하도록)
+- 페이징 처리 (목록 조회 API)
+- 검색/필터링 (날짜 범위, 키워드 등)
+
+### 기능 확장
 - PhotoLog에 mood, tags 컬럼 추가
+
+### 인프라
 - 프로덕션 DB 전환 (H2 → MySQL/PostgreSQL)
+- API 문서화 (Swagger/SpringDoc)
