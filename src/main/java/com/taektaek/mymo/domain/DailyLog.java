@@ -10,7 +10,7 @@ import java.time.LocalDate;
 @Table(name = "daily_logs")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class DailyLog {
+public class DailyLog extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
