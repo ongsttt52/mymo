@@ -7,6 +7,7 @@ import com.taektaek.mymo.dto.photolog.PhotoLogResponse;
 import com.taektaek.mymo.dto.photolog.PhotoLogUpdateRequest;
 import com.taektaek.mymo.exception.MemberNotFoundException;
 import com.taektaek.mymo.exception.PhotoLogNotFoundException;
+import com.taektaek.mymo.exception.ResourceAccessDeniedException;
 import com.taektaek.mymo.repository.MemberRepository;
 import com.taektaek.mymo.repository.PhotoLogRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -104,7 +105,7 @@ class PhotoLogServiceTest {
             given(photoLogRepository.findById(1L)).willReturn(Optional.of(photoLog));
 
             // when
-            PhotoLogResponse response = photoLogService.getPhotoLog(1L);
+            PhotoLogResponse response = photoLogService.getPhotoLog(1L, 1L);
 
             // then
             assertThat(response.id()).isEqualTo(1L);
@@ -118,8 +119,21 @@ class PhotoLogServiceTest {
             given(photoLogRepository.findById(999L)).willReturn(Optional.empty());
 
             // when & then
-            assertThatThrownBy(() -> photoLogService.getPhotoLog(999L))
+            assertThatThrownBy(() -> photoLogService.getPhotoLog(999L, 1L))
                     .isInstanceOf(PhotoLogNotFoundException.class);
+        }
+
+        @Test
+        @DisplayName("다른 회원의 사진 기록을 조회하면 예외를 던진다")
+        void accessDenied() {
+            // given
+            Member member = createMember(1L);
+            PhotoLog photoLog = createPhotoLog(1L, "http://image.url", "성수동", member);
+            given(photoLogRepository.findById(1L)).willReturn(Optional.of(photoLog));
+
+            // when & then
+            assertThatThrownBy(() -> photoLogService.getPhotoLog(1L, 2L))
+                    .isInstanceOf(ResourceAccessDeniedException.class);
         }
 
         @Test
@@ -157,7 +171,7 @@ class PhotoLogServiceTest {
             given(photoLogRepository.findById(1L)).willReturn(Optional.of(photoLog));
 
             // when
-            PhotoLogResponse response = photoLogService.updatePhotoLog(1L, request);
+            PhotoLogResponse response = photoLogService.updatePhotoLog(1L, 1L, request);
 
             // then
             assertThat(response.imageUrl()).isEqualTo("new-url");
@@ -174,8 +188,23 @@ class PhotoLogServiceTest {
             given(photoLogRepository.findById(999L)).willReturn(Optional.empty());
 
             // when & then
-            assertThatThrownBy(() -> photoLogService.updatePhotoLog(999L, request))
+            assertThatThrownBy(() -> photoLogService.updatePhotoLog(999L, 1L, request))
                     .isInstanceOf(PhotoLogNotFoundException.class);
+        }
+
+        @Test
+        @DisplayName("다른 회원의 사진 기록을 수정하면 예외를 던진다")
+        void accessDenied() {
+            // given
+            Member member = createMember(1L);
+            PhotoLog photoLog = createPhotoLog(1L, "url", "장소", member);
+            PhotoLogUpdateRequest request = new PhotoLogUpdateRequest("new-url", "새 장소", "새 설명", null);
+
+            given(photoLogRepository.findById(1L)).willReturn(Optional.of(photoLog));
+
+            // when & then
+            assertThatThrownBy(() -> photoLogService.updatePhotoLog(1L, 2L, request))
+                    .isInstanceOf(ResourceAccessDeniedException.class);
         }
     }
 
@@ -192,7 +221,7 @@ class PhotoLogServiceTest {
             given(photoLogRepository.findById(1L)).willReturn(Optional.of(photoLog));
 
             // when
-            photoLogService.deletePhotoLog(1L);
+            photoLogService.deletePhotoLog(1L, 1L);
 
             // then
             verify(photoLogRepository).delete(photoLog);
@@ -205,8 +234,21 @@ class PhotoLogServiceTest {
             given(photoLogRepository.findById(999L)).willReturn(Optional.empty());
 
             // when & then
-            assertThatThrownBy(() -> photoLogService.deletePhotoLog(999L))
+            assertThatThrownBy(() -> photoLogService.deletePhotoLog(999L, 1L))
                     .isInstanceOf(PhotoLogNotFoundException.class);
+        }
+
+        @Test
+        @DisplayName("다른 회원의 사진 기록을 삭제하면 예외를 던진다")
+        void accessDenied() {
+            // given
+            Member member = createMember(1L);
+            PhotoLog photoLog = createPhotoLog(1L, "url", "장소", member);
+            given(photoLogRepository.findById(1L)).willReturn(Optional.of(photoLog));
+
+            // when & then
+            assertThatThrownBy(() -> photoLogService.deletePhotoLog(1L, 2L))
+                    .isInstanceOf(ResourceAccessDeniedException.class);
         }
     }
 }

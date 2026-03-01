@@ -7,6 +7,7 @@ import com.taektaek.mymo.dto.memo.MemoResponse;
 import com.taektaek.mymo.dto.memo.MemoUpdateRequest;
 import com.taektaek.mymo.exception.MemberNotFoundException;
 import com.taektaek.mymo.exception.MemoNotFoundException;
+import com.taektaek.mymo.exception.ResourceAccessDeniedException;
 import com.taektaek.mymo.repository.MemberRepository;
 import com.taektaek.mymo.repository.MemoRepository;
 
@@ -36,8 +37,9 @@ public class MemoService {
         return MemoResponse.from(savedMemo);
     }
 
-    public MemoResponse getMemo(Long id) {
+    public MemoResponse getMemo(Long id, Long memberId) {
         Memo memo = findMemoById(id);
+        validateOwnership(memo, memberId);
         return MemoResponse.from(memo);
     }
 
@@ -48,15 +50,17 @@ public class MemoService {
     }
 
     @Transactional
-    public MemoResponse updateMemo(Long id, MemoUpdateRequest request) {
+    public MemoResponse updateMemo(Long id, Long memberId, MemoUpdateRequest request) {
         Memo memo = findMemoById(id);
+        validateOwnership(memo, memberId);
         memo.updateContent(request.content());
         return MemoResponse.from(memo);
     }
 
     @Transactional
-    public void deleteMemo(Long id) {
+    public void deleteMemo(Long id, Long memberId) {
         Memo memo = findMemoById(id);
+        validateOwnership(memo, memberId);
         memoRepository.delete(memo);
     }
 
@@ -68,5 +72,11 @@ public class MemoService {
     private Member findMemberById(Long memberId) {
         return memberRepository.findById(memberId)
                 .orElseThrow(MemberNotFoundException::new);
+    }
+
+    private void validateOwnership(Memo memo, Long memberId) {
+        if (!memo.getMember().getId().equals(memberId)) {
+            throw new ResourceAccessDeniedException();
+        }
     }
 }

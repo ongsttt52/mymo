@@ -1,7 +1,6 @@
 package com.taektaek.mymo.service;
 
 import com.taektaek.mymo.domain.Member;
-import com.taektaek.mymo.dto.member.MemberCreateRequest;
 import com.taektaek.mymo.dto.member.MemberResponse;
 import com.taektaek.mymo.dto.member.MemberUpdateRequest;
 import com.taektaek.mymo.exception.DuplicateMemberException;
@@ -16,12 +15,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
@@ -38,56 +35,6 @@ class MemberServiceTest {
         Member member = new Member(username, email, "password123");
         ReflectionTestUtils.setField(member, "id", id);
         return member;
-    }
-
-    @Nested
-    @DisplayName("회원 생성")
-    class CreateMember {
-
-        @Test
-        @DisplayName("정상적으로 회원을 생성한다")
-        void success() {
-            // given
-            MemberCreateRequest request = new MemberCreateRequest("testuser", "test@example.com", "password123");
-            Member savedMember = createMember(1L, "testuser", "test@example.com");
-
-            given(memberRepository.existsByUsername("testuser")).willReturn(false);
-            given(memberRepository.existsByEmail("test@example.com")).willReturn(false);
-            given(memberRepository.save(any(Member.class))).willReturn(savedMember);
-
-            // when
-            MemberResponse response = memberService.createMember(request);
-
-            // then
-            assertThat(response.id()).isEqualTo(1L);
-            assertThat(response.username()).isEqualTo("testuser");
-            assertThat(response.email()).isEqualTo("test@example.com");
-        }
-
-        @Test
-        @DisplayName("중복된 username이면 예외를 던진다")
-        void duplicateUsername() {
-            // given
-            MemberCreateRequest request = new MemberCreateRequest("testuser", "test@example.com", "password123");
-            given(memberRepository.existsByUsername("testuser")).willReturn(true);
-
-            // when & then
-            assertThatThrownBy(() -> memberService.createMember(request))
-                    .isInstanceOf(DuplicateMemberException.class);
-        }
-
-        @Test
-        @DisplayName("중복된 email이면 예외를 던진다")
-        void duplicateEmail() {
-            // given
-            MemberCreateRequest request = new MemberCreateRequest("testuser", "test@example.com", "password123");
-            given(memberRepository.existsByUsername("testuser")).willReturn(false);
-            given(memberRepository.existsByEmail("test@example.com")).willReturn(true);
-
-            // when & then
-            assertThatThrownBy(() -> memberService.createMember(request))
-                    .isInstanceOf(DuplicateMemberException.class);
-        }
     }
 
     @Nested
@@ -118,25 +65,6 @@ class MemberServiceTest {
             // when & then
             assertThatThrownBy(() -> memberService.getMember(999L))
                     .isInstanceOf(MemberNotFoundException.class);
-        }
-
-        @Test
-        @DisplayName("전체 회원을 조회한다")
-        void getAllMembers() {
-            // given
-            List<Member> members = List.of(
-                    createMember(1L, "user1", "user1@example.com"),
-                    createMember(2L, "user2", "user2@example.com")
-            );
-            given(memberRepository.findAll()).willReturn(members);
-
-            // when
-            List<MemberResponse> responses = memberService.getAllMembers();
-
-            // then
-            assertThat(responses).hasSize(2);
-            assertThat(responses.get(0).username()).isEqualTo("user1");
-            assertThat(responses.get(1).username()).isEqualTo("user2");
         }
     }
 

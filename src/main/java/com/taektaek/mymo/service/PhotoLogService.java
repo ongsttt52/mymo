@@ -7,6 +7,7 @@ import com.taektaek.mymo.dto.photolog.PhotoLogResponse;
 import com.taektaek.mymo.dto.photolog.PhotoLogUpdateRequest;
 import com.taektaek.mymo.exception.MemberNotFoundException;
 import com.taektaek.mymo.exception.PhotoLogNotFoundException;
+import com.taektaek.mymo.exception.ResourceAccessDeniedException;
 import com.taektaek.mymo.repository.MemberRepository;
 import com.taektaek.mymo.repository.PhotoLogRepository;
 
@@ -38,8 +39,9 @@ public class PhotoLogService {
         return PhotoLogResponse.from(savedPhotoLog);
     }
 
-    public PhotoLogResponse getPhotoLog(Long id) {
+    public PhotoLogResponse getPhotoLog(Long id, Long memberId) {
         PhotoLog photoLog = findPhotoLogById(id);
+        validateOwnership(photoLog, memberId);
         return PhotoLogResponse.from(photoLog);
     }
 
@@ -50,15 +52,17 @@ public class PhotoLogService {
     }
 
     @Transactional
-    public PhotoLogResponse updatePhotoLog(Long id, PhotoLogUpdateRequest request) {
+    public PhotoLogResponse updatePhotoLog(Long id, Long memberId, PhotoLogUpdateRequest request) {
         PhotoLog photoLog = findPhotoLogById(id);
+        validateOwnership(photoLog, memberId);
         photoLog.update(request.imageUrl(), request.location(), request.description(), request.date());
         return PhotoLogResponse.from(photoLog);
     }
 
     @Transactional
-    public void deletePhotoLog(Long id) {
+    public void deletePhotoLog(Long id, Long memberId) {
         PhotoLog photoLog = findPhotoLogById(id);
+        validateOwnership(photoLog, memberId);
         photoLogRepository.delete(photoLog);
     }
 
@@ -70,5 +74,11 @@ public class PhotoLogService {
     private Member findMemberById(Long memberId) {
         return memberRepository.findById(memberId)
                 .orElseThrow(MemberNotFoundException::new);
+    }
+
+    private void validateOwnership(PhotoLog photoLog, Long memberId) {
+        if (!photoLog.getMember().getId().equals(memberId)) {
+            throw new ResourceAccessDeniedException();
+        }
     }
 }

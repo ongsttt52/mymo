@@ -7,6 +7,7 @@ import com.taektaek.mymo.dto.musiclog.MusicLogResponse;
 import com.taektaek.mymo.dto.musiclog.MusicLogUpdateRequest;
 import com.taektaek.mymo.exception.MemberNotFoundException;
 import com.taektaek.mymo.exception.MusicLogNotFoundException;
+import com.taektaek.mymo.exception.ResourceAccessDeniedException;
 import com.taektaek.mymo.repository.MemberRepository;
 import com.taektaek.mymo.repository.MusicLogRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -110,7 +111,7 @@ class MusicLogServiceTest {
             given(musicLogRepository.findById(1L)).willReturn(Optional.of(musicLog));
 
             // when
-            MusicLogResponse response = musicLogService.getMusicLog(1L);
+            MusicLogResponse response = musicLogService.getMusicLog(1L, 1L);
 
             // then
             assertThat(response.id()).isEqualTo(1L);
@@ -124,8 +125,21 @@ class MusicLogServiceTest {
             given(musicLogRepository.findById(999L)).willReturn(Optional.empty());
 
             // when & then
-            assertThatThrownBy(() -> musicLogService.getMusicLog(999L))
+            assertThatThrownBy(() -> musicLogService.getMusicLog(999L, 1L))
                     .isInstanceOf(MusicLogNotFoundException.class);
+        }
+
+        @Test
+        @DisplayName("다른 회원의 음악 기록을 조회하면 예외를 던진다")
+        void accessDenied() {
+            // given
+            Member member = createMember(1L);
+            MusicLog musicLog = createMusicLog(1L, "Spring Day", "BTS", member);
+            given(musicLogRepository.findById(1L)).willReturn(Optional.of(musicLog));
+
+            // when & then
+            assertThatThrownBy(() -> musicLogService.getMusicLog(1L, 2L))
+                    .isInstanceOf(ResourceAccessDeniedException.class);
         }
 
         @Test
@@ -166,7 +180,7 @@ class MusicLogServiceTest {
             given(musicLogRepository.findById(1L)).willReturn(Optional.of(musicLog));
 
             // when
-            MusicLogResponse response = musicLogService.updateMusicLog(1L, request);
+            MusicLogResponse response = musicLogService.updateMusicLog(1L, 1L, request);
 
             // then
             assertThat(response.title()).isEqualTo("새 곡");
@@ -184,8 +198,25 @@ class MusicLogServiceTest {
             given(musicLogRepository.findById(999L)).willReturn(Optional.empty());
 
             // when & then
-            assertThatThrownBy(() -> musicLogService.updateMusicLog(999L, request))
+            assertThatThrownBy(() -> musicLogService.updateMusicLog(999L, 1L, request))
                     .isInstanceOf(MusicLogNotFoundException.class);
+        }
+
+        @Test
+        @DisplayName("다른 회원의 음악 기록을 수정하면 예외를 던진다")
+        void accessDenied() {
+            // given
+            Member member = createMember(1L);
+            MusicLog musicLog = createMusicLog(1L, "곡", "가수", member);
+            MusicLogUpdateRequest request = new MusicLogUpdateRequest(
+                    "새 곡", "새 가수", null, null, null, null, null
+            );
+
+            given(musicLogRepository.findById(1L)).willReturn(Optional.of(musicLog));
+
+            // when & then
+            assertThatThrownBy(() -> musicLogService.updateMusicLog(1L, 2L, request))
+                    .isInstanceOf(ResourceAccessDeniedException.class);
         }
     }
 
@@ -202,7 +233,7 @@ class MusicLogServiceTest {
             given(musicLogRepository.findById(1L)).willReturn(Optional.of(musicLog));
 
             // when
-            musicLogService.deleteMusicLog(1L);
+            musicLogService.deleteMusicLog(1L, 1L);
 
             // then
             verify(musicLogRepository).delete(musicLog);
@@ -215,8 +246,21 @@ class MusicLogServiceTest {
             given(musicLogRepository.findById(999L)).willReturn(Optional.empty());
 
             // when & then
-            assertThatThrownBy(() -> musicLogService.deleteMusicLog(999L))
+            assertThatThrownBy(() -> musicLogService.deleteMusicLog(999L, 1L))
                     .isInstanceOf(MusicLogNotFoundException.class);
+        }
+
+        @Test
+        @DisplayName("다른 회원의 음악 기록을 삭제하면 예외를 던진다")
+        void accessDenied() {
+            // given
+            Member member = createMember(1L);
+            MusicLog musicLog = createMusicLog(1L, "곡", "가수", member);
+            given(musicLogRepository.findById(1L)).willReturn(Optional.of(musicLog));
+
+            // when & then
+            assertThatThrownBy(() -> musicLogService.deleteMusicLog(1L, 2L))
+                    .isInstanceOf(ResourceAccessDeniedException.class);
         }
     }
 }

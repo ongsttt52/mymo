@@ -28,3 +28,8 @@ spring:
   threads:
     virtual:
       enabled: false
+
+# JWT 설정
+jwt:
+  secret: mymo-jwt-secret-key-for-development-only-must-be-at-least-256-bits-long
+  expiration: 86400000 # 24시간 (밀리초)

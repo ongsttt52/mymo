@@ -8,6 +8,7 @@ import com.taektaek.mymo.dto.dailylog.DailyLogUpdateRequest;
 import com.taektaek.mymo.exception.DailyLogNotFoundException;
 import com.taektaek.mymo.exception.DuplicateDailyLogDateException;
 import com.taektaek.mymo.exception.MemberNotFoundException;
+import com.taektaek.mymo.exception.ResourceAccessDeniedException;
 import com.taektaek.mymo.repository.DailyLogRepository;
 import com.taektaek.mymo.repository.MemberRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -123,7 +124,7 @@ class DailyLogServiceTest {
             given(dailyLogRepository.findById(1L)).willReturn(Optional.of(dailyLog));
 
             // when
-            DailyLogResponse response = dailyLogService.getDailyLog(1L);
+            DailyLogResponse response = dailyLogService.getDailyLog(1L, 1L);
 
             // then
             assertThat(response.id()).isEqualTo(1L);
@@ -137,8 +138,21 @@ class DailyLogServiceTest {
             given(dailyLogRepository.findById(999L)).willReturn(Optional.empty());
 
             // when & then
-            assertThatThrownBy(() -> dailyLogService.getDailyLog(999L))
+            assertThatThrownBy(() -> dailyLogService.getDailyLog(999L, 1L))
                     .isInstanceOf(DailyLogNotFoundException.class);
+        }
+
+        @Test
+        @DisplayName("다른 회원의 기록을 조회하면 예외를 던진다")
+        void accessDenied() {
+            // given
+            Member member = createMember(1L);
+            DailyLog dailyLog = createDailyLog(1L, LocalDate.of(2026, 3, 1), "다짐", "회고", member);
+            given(dailyLogRepository.findById(1L)).willReturn(Optional.of(dailyLog));
+
+            // when & then
+            assertThatThrownBy(() -> dailyLogService.getDailyLog(1L, 2L))
+                    .isInstanceOf(ResourceAccessDeniedException.class);
         }
 
         @Test
@@ -177,7 +191,7 @@ class DailyLogServiceTest {
             given(dailyLogRepository.findById(1L)).willReturn(Optional.of(dailyLog));
 
             // when
-            DailyLogResponse response = dailyLogService.updateDailyLog(1L, request);
+            DailyLogResponse response = dailyLogService.updateDailyLog(1L, 1L, request);
 
             // then
             assertThat(response.resolution()).isEqualTo("새 다짐");
@@ -192,8 +206,23 @@ class DailyLogServiceTest {
             given(dailyLogRepository.findById(999L)).willReturn(Optional.empty());
 
             // when & then
-            assertThatThrownBy(() -> dailyLogService.updateDailyLog(999L, request))
+            assertThatThrownBy(() -> dailyLogService.updateDailyLog(999L, 1L, request))
                     .isInstanceOf(DailyLogNotFoundException.class);
+        }
+
+        @Test
+        @DisplayName("다른 회원의 기록을 수정하면 예외를 던진다")
+        void accessDenied() {
+            // given
+            Member member = createMember(1L);
+            DailyLog dailyLog = createDailyLog(1L, LocalDate.of(2026, 3, 1), "다짐", "회고", member);
+            DailyLogUpdateRequest request = new DailyLogUpdateRequest("새 다짐", "새 회고");
+
+            given(dailyLogRepository.findById(1L)).willReturn(Optional.of(dailyLog));
+
+            // when & then
+            assertThatThrownBy(() -> dailyLogService.updateDailyLog(1L, 2L, request))
+                    .isInstanceOf(ResourceAccessDeniedException.class);
         }
     }
 
@@ -210,7 +239,7 @@ class DailyLogServiceTest {
             given(dailyLogRepository.findById(1L)).willReturn(Optional.of(dailyLog));
 
             // when
-            dailyLogService.deleteDailyLog(1L);
+            dailyLogService.deleteDailyLog(1L, 1L);
 
             // then
             verify(dailyLogRepository).delete(dailyLog);
@@ -223,8 +252,21 @@ class DailyLogServiceTest {
             given(dailyLogRepository.findById(999L)).willReturn(Optional.empty());
 
             // when & then
-            assertThatThrownBy(() -> dailyLogService.deleteDailyLog(999L))
+            assertThatThrownBy(() -> dailyLogService.deleteDailyLog(999L, 1L))
                     .isInstanceOf(DailyLogNotFoundException.class);
+        }
+
+        @Test
+        @DisplayName("다른 회원의 기록을 삭제하면 예외를 던진다")
+        void accessDenied() {
+            // given
+            Member member = createMember(1L);
+            DailyLog dailyLog = createDailyLog(1L, LocalDate.of(2026, 3, 1), "다짐", "회고", member);
+            given(dailyLogRepository.findById(1L)).willReturn(Optional.of(dailyLog));
+
+            // when & then
+            assertThatThrownBy(() -> dailyLogService.deleteDailyLog(1L, 2L))
+                    .isInstanceOf(ResourceAccessDeniedException.class);
         }
     }
 }

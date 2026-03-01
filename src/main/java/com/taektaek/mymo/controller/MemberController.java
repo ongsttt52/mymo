@@ -1,16 +1,13 @@
 package com.taektaek.mymo.controller;
 
-import com.taektaek.mymo.dto.member.MemberCreateRequest;
 import com.taektaek.mymo.dto.member.MemberResponse;
 import com.taektaek.mymo.dto.member.MemberUpdateRequest;
+import com.taektaek.mymo.security.CurrentMemberId;
 import com.taektaek.mymo.service.MemberService;
 
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/members")
@@ -22,35 +19,23 @@ public class MemberController {
         this.memberService = memberService;
     }
 
-    @PostMapping
-    public ResponseEntity<MemberResponse> createMember(@Valid @RequestBody MemberCreateRequest request) {
-        MemberResponse response = memberService.createMember(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<MemberResponse> getMember(@PathVariable Long id) {
-        MemberResponse response = memberService.getMember(id);
+    @GetMapping("/me")
+    public ResponseEntity<MemberResponse> getMyInfo(@CurrentMemberId Long memberId) {
+        MemberResponse response = memberService.getMember(memberId);
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping
-    public ResponseEntity<List<MemberResponse>> getAllMembers() {
-        List<MemberResponse> responses = memberService.getAllMembers();
-        return ResponseEntity.ok(responses);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<MemberResponse> updateMember(
-            @PathVariable Long id,
+    @PutMapping("/me")
+    public ResponseEntity<MemberResponse> updateMyInfo(
+            @CurrentMemberId Long memberId,
             @Valid @RequestBody MemberUpdateRequest request) {
-        MemberResponse response = memberService.updateMember(id, request);
+        MemberResponse response = memberService.updateMember(memberId, request);
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteMember(@PathVariable Long id) {
-        memberService.deleteMember(id);
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> deleteMyAccount(@CurrentMemberId Long memberId) {
+        memberService.deleteMember(memberId);
         return ResponseEntity.noContent().build();
     }
 }
