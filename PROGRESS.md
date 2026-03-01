@@ -12,7 +12,7 @@
 - **브랜치**: `main` (직접 커밋)
 - `Member`, `DailyLog`, `Memo`, `PhotoLog`, `MusicLog` 5개 엔티티 생성
 - 엔티티 간 관계 매핑 (Member 1:N 나머지 4개, CascadeType.ALL, LAZY 로딩)
-- `Memo`에 JPA Auditing 적용 (`@CreatedDate`, `@LastModifiedDate`)
+- `BaseEntity` 추상 클래스로 `createdAt`, `updatedAt` 공통 관리 (`@MappedSuperclass`)
 
 ### Member CRUD + 예외 처리 인프라
 - **PR**: [#1](https://github.com/ongsttt52/mymo/pull/1) (`feat/member-crud` → `dev`, 스쿼시 머지)
@@ -35,25 +35,43 @@
 | PUT | `/api/members/{id}` | 정보 수정 | 200 |
 | DELETE | `/api/members/{id}` | 삭제 | 204 |
 
+### 4개 도메인 CRUD 구현
+- **PR**: [#2](https://github.com/ongsttt52/mymo/pull/2) (`dev` → `main`, 스쿼시 머지)
+- `BaseEntity` 리팩토링: 모든 엔티티에 `createdAt`, `updatedAt` 공통 적용
+- DailyLog CRUD: 날짜 중복 검증, 회원별 날짜 내림차순 조회
+- Memo CRUD: 회원별 수정일 내림차순 조회
+- PhotoLog CRUD: 선택 필드(location, description, date) 지원
+- MusicLog CRUD: 선택 필드(artist, album, genre, youtubeUrl, description, date) 지원
+- 각 도메인별 NotFoundException + ErrorCode 추가, GlobalExceptionHandler 확장
+- 테스트: Repository 9개, Service 35개 (전체 통과)
+
+#### API 엔드포인트
+| Method | URI | 설명 | 응답 |
+|--------|-----|------|------|
+| POST | `/api/daily-logs?memberId={id}` | 일일 기록 생성 | 201 |
+| GET | `/api/daily-logs/{id}` | 일일 기록 단건 조회 | 200 |
+| GET | `/api/daily-logs?memberId={id}` | 회원별 일일 기록 조회 | 200 |
+| PUT | `/api/daily-logs/{id}` | 일일 기록 수정 | 200 |
+| DELETE | `/api/daily-logs/{id}` | 일일 기록 삭제 | 204 |
+| POST | `/api/memos?memberId={id}` | 메모 생성 | 201 |
+| GET | `/api/memos/{id}` | 메모 단건 조회 | 200 |
+| GET | `/api/memos?memberId={id}` | 회원별 메모 조회 | 200 |
+| PUT | `/api/memos/{id}` | 메모 수정 | 200 |
+| DELETE | `/api/memos/{id}` | 메모 삭제 | 204 |
+| POST | `/api/photo-logs?memberId={id}` | 사진 기록 생성 | 201 |
+| GET | `/api/photo-logs/{id}` | 사진 기록 단건 조회 | 200 |
+| GET | `/api/photo-logs?memberId={id}` | 회원별 사진 기록 조회 | 200 |
+| PUT | `/api/photo-logs/{id}` | 사진 기록 수정 | 200 |
+| DELETE | `/api/photo-logs/{id}` | 사진 기록 삭제 | 204 |
+| POST | `/api/music-logs?memberId={id}` | 음악 기록 생성 | 201 |
+| GET | `/api/music-logs/{id}` | 음악 기록 단건 조회 | 200 |
+| GET | `/api/music-logs?memberId={id}` | 회원별 음악 기록 조회 | 200 |
+| PUT | `/api/music-logs/{id}` | 음악 기록 수정 | 200 |
+| DELETE | `/api/music-logs/{id}` | 음악 기록 삭제 | 204 |
+
 ---
 
 ## 미구현 작업
-
-### DailyLog CRUD
-- Repository / Service / Controller / DTO
-- 테스트
-
-### Memo CRUD
-- Repository / Service / Controller / DTO
-- 테스트
-
-### PhotoLog CRUD
-- Repository / Service / Controller / DTO
-- 테스트
-
-### MusicLog CRUD
-- Repository / Service / Controller / DTO
-- 테스트
 
 ### 보안
 - Spring Security 도입
