@@ -113,6 +113,39 @@
 | PUT | `/api/music-logs/{id}` | 음악 기록 수정 (소유권 검증) | 필요 | 200 |
 | DELETE | `/api/music-logs/{id}` | 음악 기록 삭제 (소유권 검증) | 필요 | 204 |
 
+### 프론트엔드 초기 셋업
+- **PR**: [#5](https://github.com/ongsttt52/mymo/pull/5) (`feat/frontend-setup` → `main`, 스쿼시 머지)
+- **기술 스택**: Vite + React 19 + TypeScript + Tailwind CSS v4
+
+#### 프로젝트 구조
+- Vite + React + TypeScript 프로젝트 생성 (`frontend/`)
+- Tailwind CSS v4 설정 (`@tailwindcss/vite` 플러그인, 커스텀 테마)
+- Vite dev proxy 설정 (`/api` → `http://localhost:8080`)
+
+#### TypeScript 타입 + API 클라이언트
+- 백엔드 DTO 미러링 TypeScript 타입 (`src/types/`)
+- axios 기반 API 클라이언트 (`src/api/client.ts`): JWT 자동 첨부 interceptor, 401 응답 시 로그인 리다이렉트
+- 도메인별 CRUD API 함수: auth, member, dailyLog, memo, photoLog, musicLog
+
+#### 상태 관리 + 라우팅
+- Zustand 인증 스토어 (`useAuthStore`): 토큰/사용자 정보 관리, localStorage 연동
+- React Router v7 라우팅: 공개(`/login`, `/signup`) + 인증(`/dashboard`) 라우트
+- `ProtectedRoute` 컴포넌트: 미인증 시 `/login` 리다이렉트
+
+#### UI 컴포넌트
+- 레이아웃: `Layout` (Header + Sidebar + Main), `Header` (이메일, 로그아웃), `Sidebar` (5개 네비게이션)
+- 인증: `LoginForm` (이메일/비밀번호, 에러 표시), `SignupForm` (사용자명/이메일/비밀번호, 필드별 에러)
+- 페이지: `LoginPage`, `SignupPage`, `DashboardPage` (환영 메시지 + 4개 도메인 요약 카드), `NotFoundPage`
+- 공통: `LoadingSpinner`, `ErrorMessage` (재시도 버튼)
+
+#### 의존성
+| 패키지 | 용도 |
+|--------|------|
+| axios | HTTP 클라이언트 + JWT interceptor |
+| zustand | 인증 상태 관리 |
+| react-router | 클라이언트 사이드 라우팅 |
+| tailwindcss + @tailwindcss/vite | CSS 프레임워크 |
+
 ---
 
 ## 미구현 작업
@@ -123,6 +156,11 @@
 
 ### 기능 확장
 - PhotoLog에 mood, tags 컬럼 추가
+
+### 프론트엔드
+- 4개 도메인 CRUD 페이지 구현 (일일 기록, 메모, 사진 기록, 음악 기록)
+- 프로필 수정 / 회원 탈퇴 페이지
+- 반응형 디자인 (모바일 대응)
 
 ### 인프라
 - 프로덕션 DB 전환 (H2 → MySQL/PostgreSQL)
