@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: mymo-postgres
+    environment:
+      POSTGRES_DB: mymo
+      POSTGRES_USER: mymo
+      POSTGRES_PASSWORD: mymo
+    ports:
+      - "5432:5432"
+    volumes:
+      - mymo-postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  mymo-postgres-data:
