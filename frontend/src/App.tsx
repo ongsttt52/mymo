@@ -6,6 +6,7 @@ import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import DashboardPage from './pages/DashboardPage';
 import DailyLogPage from './pages/DailyLogPage';
+import MemoPage from './pages/MemoPage';
 import NotFoundPage from './pages/NotFoundPage';
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
                     <Route element={<Layout />}>
                         <Route path="/dashboard" element={<DashboardPage />} />
                         <Route path="/daily-logs" element={<DailyLogPage />} />
+                        <Route path="/memos" element={<MemoPage />} />
                     </Route>
                 </Route>
 
