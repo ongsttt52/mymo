@@ -2,6 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.5.10'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id 'com.diffplug.spotless' version '7.0.2'
 }
 
 group = 'com.taektaek'
@@ -44,6 +45,15 @@ dependencies {
 	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testRuntimeOnly 'com.h2database:h2'
+}
+
+spotless {
+	java {
+		target 'src/*/java/**/*.java'
+		googleJavaFormat()
+		removeUnusedImports()
+		formatAnnotations()
+	}
 }
 
 tasks.named('test') {
