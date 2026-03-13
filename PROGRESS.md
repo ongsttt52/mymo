@@ -146,6 +146,40 @@
 | react-router | 클라이언트 사이드 라우팅 |
 | tailwindcss + @tailwindcss/vite | CSS 프레임워크 |
 
+### 프론트엔드 4개 도메인 CRUD 페이지
+- **PR**: (feat/frontend-domain-crud-pages → dev)
+- **기술**: 모달 기반 CRUD (별도 페이지 라우팅 없이 목록 페이지 1개 + 생성/수정 모달 + 삭제 확인 모달)
+
+#### 공통 컴포넌트 (6개)
+- `Modal`: `createPortal(_, document.body)` 기반 범용 모달 (ESC 닫기, 오버레이 클릭 닫기, body 스크롤 잠금)
+- `ConfirmModal`: 삭제 확인 모달 (Modal 재사용, 빨간 확인 버튼, 로딩 상태)
+- `FormField`: 폼 입력 필드 (text/date/url/textarea, 에러 표시, required 마크)
+- `EmptyState`: 빈 상태 안내 (아이콘 + 텍스트 + 새로 만들기 버튼)
+- `PageHeader`: 페이지 헤더 (제목 + 건수 + 새로 만들기 버튼)
+- `format.ts`: 날짜 포맷팅 유틸 (formatDate, formatDateTime)
+
+#### 도메인별 페이지
+| 도메인 | 레이아웃 | 색상 테마 | 정렬 기준 | 파일 수 |
+|--------|---------|----------|----------|---------|
+| DailyLog | 세로 리스트 | indigo | 날짜 내림차순 | 4개 |
+| Memo | 카드 그리드 (2~3열) | amber | 수정일 내림차순 | 4개 |
+| PhotoLog | 카드 그리드 (2~3열) | emerald | 생성일 내림차순 | 4개 |
+| MusicLog | 세로 리스트 | rose | 생성일 내림차순 | 4개 |
+
+#### 주요 UX 특징
+- 모든 도메인: 목록 → 빈 상태 안내 / 목록 표시 + CRUD 모달
+- PhotoLog: 이미지 URL 미리보기, 이미지 로드 실패 fallback
+- MusicLog: YouTube 외부 링크, 앨범/장르 뱃지, 7개 필드 모달 내 스크롤
+- Memo: hover 시 수정/삭제 버튼 표시, 내용 6줄 클램핑
+
+#### 라우트 추가
+| 경로 | 페이지 |
+|------|--------|
+| `/daily-logs` | DailyLogPage |
+| `/memos` | MemoPage |
+| `/photo-logs` | PhotoLogPage |
+| `/music-logs` | MusicLogPage |
+
 ---
 
 ## 미구현 작업
@@ -158,7 +192,6 @@
 - PhotoLog에 mood, tags 컬럼 추가
 
 ### 프론트엔드
-- 4개 도메인 CRUD 페이지 구현 (일일 기록, 메모, 사진 기록, 음악 기록)
 - 프로필 수정 / 회원 탈퇴 페이지
 - 반응형 디자인 (모바일 대응)
 

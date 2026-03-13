@@ -5,6 +5,10 @@ import Layout from './components/layout/Layout';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import DashboardPage from './pages/DashboardPage';
+import DailyLogPage from './pages/DailyLogPage';
+import MemoPage from './pages/MemoPage';
+import PhotoLogPage from './pages/PhotoLogPage';
+import MusicLogPage from './pages/MusicLogPage';
 import NotFoundPage from './pages/NotFoundPage';
 
 function App() {
@@ -17,6 +21,10 @@ function App() {
                 <Route element={<ProtectedRoute />}>
                     <Route element={<Layout />}>
                         <Route path="/dashboard" element={<DashboardPage />} />
+                        <Route path="/daily-logs" element={<DailyLogPage />} />
+                        <Route path="/memos" element={<MemoPage />} />
+                        <Route path="/photo-logs" element={<PhotoLogPage />} />
+                        <Route path="/music-logs" element={<MusicLogPage />} />
                     </Route>
                 </Route>
 
