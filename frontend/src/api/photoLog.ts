@@ -4,6 +4,7 @@ import type {
     PhotoLogResponse,
     PhotoLogUpdateRequest,
 } from '../types/photoLog';
+import type { DateRangeSearchParams, PagedResponse } from '../types/common';
 
 export const createPhotoLog = (data: PhotoLogCreateRequest) =>
     client.post<PhotoLogResponse>('/photo-logs', data);
@@ -11,8 +12,8 @@ export const createPhotoLog = (data: PhotoLogCreateRequest) =>
 export const getPhotoLog = (id: number) =>
     client.get<PhotoLogResponse>(`/photo-logs/${id}`);
 
-export const getPhotoLogs = () =>
-    client.get<PhotoLogResponse[]>('/photo-logs');
+export const getPhotoLogs = (params?: DateRangeSearchParams) =>
+    client.get<PagedResponse<PhotoLogResponse>>('/photo-logs', { params });
 
 export const updatePhotoLog = (id: number, data: PhotoLogUpdateRequest) =>
     client.put<PhotoLogResponse>(`/photo-logs/${id}`, data);

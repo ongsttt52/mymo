@@ -8,9 +8,13 @@ import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 @DataJpaTest
 class PhotoLogRepositoryTest {
@@ -60,5 +64,76 @@ class PhotoLogRepositoryTest {
     // then
     assertThat(photoLogs).hasSize(1);
     assertThat(photoLogs.get(0).getDescription()).isEqualTo("내 사진");
+  }
+
+  @Nested
+  @DisplayName("페이징 검색")
+  class SearchByMemberId {
+
+    private PageRequest defaultPageRequest;
+
+    @BeforeEach
+    void setUp() {
+      defaultPageRequest = PageRequest.of(0, 12, Sort.by(Sort.Direction.DESC, "date"));
+
+      photoLogRepository.save(
+          new PhotoLog("url1", "성수동 카페", "라떼 사진", LocalDate.of(2026, 3, 1), member));
+      photoLogRepository.save(
+          new PhotoLog("url2", "강남역", "거리 풍경", LocalDate.of(2026, 3, 2), member));
+      photoLogRepository.save(
+          new PhotoLog("url3", "홍대 거리", "벽화 사진", LocalDate.of(2026, 3, 3), member));
+    }
+
+    @Test
+    @DisplayName("조건 없이 전체 조회한다")
+    void searchWithoutConditions() {
+      // when
+      Page<PhotoLog> result =
+          photoLogRepository.searchByMemberId(member.getId(), null, null, null, defaultPageRequest);
+
+      // then
+      assertThat(result.getContent()).hasSize(3);
+    }
+
+    @Test
+    @DisplayName("날짜 범위로 필터링한다")
+    void searchWithDateRange() {
+      // when
+      Page<PhotoLog> result =
+          photoLogRepository.searchByMemberId(
+              member.getId(),
+              LocalDate.of(2026, 3, 1),
+              LocalDate.of(2026, 3, 2),
+              null,
+              defaultPageRequest);
+
+      // then
+      assertThat(result.getContent()).hasSize(2);
+    }
+
+    @Test
+    @DisplayName("키워드로 location을 검색한다")
+    void searchWithKeywordInLocation() {
+      // when
+      Page<PhotoLog> result =
+          photoLogRepository.searchByMemberId(
+              member.getId(), null, null, "성수동", defaultPageRequest);
+
+      // then
+      assertThat(result.getContent()).hasSize(1);
+      assertThat(result.getContent().get(0).getLocation()).contains("성수동");
+    }
+
+    @Test
+    @DisplayName("키워드로 description을 검색한다")
+    void searchWithKeywordInDescription() {
+      // when
+      Page<PhotoLog> result =
+          photoLogRepository.searchByMemberId(member.getId(), null, null, "벽화", defaultPageRequest);
+
+      // then
+      assertThat(result.getContent()).hasSize(1);
+      assertThat(result.getContent().get(0).getDescription()).contains("벽화");
+    }
   }
 }

@@ -40,3 +40,8 @@
 - Vite + React 19 + TypeScript + Tailwind CSS v4
 - axios JWT interceptor, Zustand 인증 스토어, React Router v7
 - 레이아웃, 인증 폼, 대시보드 페이지
+
+## 프론트엔드 4개 도메인 CRUD 페이지
+- **PR**: [#7](https://github.com/ongsttt52/mymo/pull/7) (`feat/frontend-domain-crud` → `dev`)
+- DailyLog, Memo, PhotoLog, MusicLog CRUD 페이지 구현
+- 각 도메인별 생성/수정 폼, 목록/상세 페이지

@@ -25,3 +25,13 @@
 - Setter 금지, 도메인 메서드로 상태 변경
 - 모든 1:N 관계는 CASCADE ALL + LAZY 로딩
 - `@Lob` 대신 `@Column(columnDefinition = "TEXT")` 사용 (PostgreSQL 호환)
+
+## 페이징 응답 구조
+- Spring `Page<T>` 직접 직렬화 대신 커스텀 `PagedResponse<T>` 래퍼 사용
+- `Page<T>`는 `sort`, `pageable` 등 불필요한 필드를 다수 포함하므로, 프론트엔드에 필요한 필드만 전달
+
+## 검색/필터링 방식
+- `@Query` JPQL 사용 — 조건이 2~3개 수준으로 Specification은 과잉, 쿼리 메서드명은 과도하게 길어짐
+- `(:param IS NULL OR ...)` 패턴으로 선택적 조건 처리 (null이면 해당 조건 무시)
+- 정렬은 도메인별 고정 (DailyLog=date DESC, Memo=updatedAt DESC 등) — 사용자 정렬 변경 니즈 없음
+- 페이지 크기 상한 100 적용으로 악의적 요청 방지

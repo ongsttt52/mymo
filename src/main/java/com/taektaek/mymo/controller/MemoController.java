@@ -1,5 +1,6 @@
 package com.taektaek.mymo.controller;
 
+import com.taektaek.mymo.dto.common.PagedResponse;
 import com.taektaek.mymo.dto.memo.MemoCreateRequest;
 import com.taektaek.mymo.dto.memo.MemoResponse;
 import com.taektaek.mymo.dto.memo.MemoUpdateRequest;
@@ -7,7 +8,6 @@ import com.taektaek.mymo.security.CurrentMemberId;
 import com.taektaek.mymo.service.MemoService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -38,9 +38,13 @@ public class MemoController {
   }
 
   @GetMapping
-  public ResponseEntity<List<MemoResponse>> getMemosByMember(@CurrentMemberId Long memberId) {
-    List<MemoResponse> responses = memoService.getMemosByMember(memberId);
-    return ResponseEntity.ok(responses);
+  public ResponseEntity<PagedResponse<MemoResponse>> getMemosByMember(
+      @CurrentMemberId Long memberId,
+      @RequestParam(required = false) String keyword,
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "20") int size) {
+    PagedResponse<MemoResponse> response = memoService.searchMemos(memberId, keyword, page, size);
+    return ResponseEntity.ok(response);
   }
 
   @PutMapping("/{id}")
