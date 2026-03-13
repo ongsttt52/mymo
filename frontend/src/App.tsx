@@ -5,6 +5,7 @@ import Layout from './components/layout/Layout';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import DashboardPage from './pages/DashboardPage';
+import DailyLogPage from './pages/DailyLogPage';
 import NotFoundPage from './pages/NotFoundPage';
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
                 <Route element={<ProtectedRoute />}>
                     <Route element={<Layout />}>
                         <Route path="/dashboard" element={<DashboardPage />} />
+                        <Route path="/daily-logs" element={<DailyLogPage />} />
                     </Route>
                 </Route>
 
