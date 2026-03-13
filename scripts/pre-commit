@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+STAGED_JAVA=$(git diff --cached --name-only --diff-filter=ACM | grep '\.java$' || true)
+STAGED_FRONTEND=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(ts|tsx)$' || true)
+
+if [ -n "$STAGED_JAVA" ]; then
+  echo ">> Running Spotless check on staged Java files..."
+  if ! ./gradlew spotlessCheck --quiet; then
+    echo ""
+    echo "Spotless check failed. Run './gradlew spotlessApply' to fix formatting."
+    echo "Then re-stage the fixed files and commit again."
+    exit 1
+  fi
+fi
+
+if [ -n "$STAGED_FRONTEND" ]; then
+  echo ">> Running ESLint on staged frontend files..."
+  if ! (cd frontend && npm run lint); then
+    echo ""
+    echo "Frontend lint failed. Fix the issues and try again."
+    exit 1
+  fi
+fi

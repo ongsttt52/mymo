@@ -1,12 +1,11 @@
 package com.taektaek.mymo.domain;
 
 import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name = "members")
@@ -14,44 +13,44 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Member extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @Column(unique = true, nullable = false)
-    private String username;
+  @Column(unique = true, nullable = false)
+  private String username;
 
-    @Column(unique = true, nullable = false)
-    private String email;
+  @Column(unique = true, nullable = false)
+  private String email;
 
-    @Column(nullable = false)
-    private String password; // 추후 보안 적용 대비
+  @Column(nullable = false)
+  private String password; // 추후 보안 적용 대비
 
-    // 한 유저가 여러 날의 기록을 가짐
-    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
-    private List<DailyLog> dailyLogs = new ArrayList<>();
+  // 한 유저가 여러 날의 기록을 가짐
+  @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
+  private List<DailyLog> dailyLogs = new ArrayList<>();
 
-    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
-    private List<PhotoLog> photoLogs = new ArrayList<>();
+  @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
+  private List<PhotoLog> photoLogs = new ArrayList<>();
 
-    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
-    private List<MusicLog> musicLogs = new ArrayList<>();
+  @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
+  private List<MusicLog> musicLogs = new ArrayList<>();
 
-    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
-    private List<Memo> memos = new ArrayList<>();
+  @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
+  private List<Memo> memos = new ArrayList<>();
 
-    public Member(String username, String email, String password) {
-        this.username = username;
-        this.email = email;
-        this.password = password;
-    }
+  public Member(String username, String email, String password) {
+    this.username = username;
+    this.email = email;
+    this.password = password;
+  }
 
-    public void updateProfile(String username, String email) {
-        this.username = username;
-        this.email = email;
-    }
+  public void updateProfile(String username, String email) {
+    this.username = username;
+    this.email = email;
+  }
 
-    public void updatePassword(String password) {
-        this.password = password;
-    }
+  public void updatePassword(String password) {
+    this.password = password;
+  }
 }
