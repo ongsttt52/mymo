@@ -56,6 +56,18 @@ spotless {
 	}
 }
 
+tasks.register('installGitHooks', Copy) {
+	from 'scripts/pre-commit'
+	into '.git/hooks'
+	filePermissions {
+		unix('rwxr-xr-x')
+	}
+}
+
+tasks.named('compileJava') {
+	dependsOn 'installGitHooks'
+}
+
 tasks.named('test') {
 	useJUnitPlatform()
 }
