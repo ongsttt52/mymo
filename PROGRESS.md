@@ -180,6 +180,75 @@
 | `/photo-logs` | PhotoLogPage |
 | `/music-logs` | MusicLogPage |
 
+### 인프라 개선: PostgreSQL 전환 + JWT 환경변수 분리 + API 문서화
+- **PR**: (feat/infra-improvements → dev)
+- 프로덕션 대비 인프라 3종 개선
+
+#### PostgreSQL 전환 + Spring Profile 분리
+- H2 File DB → PostgreSQL 17 전환 (Docker Compose로 컨테이너 관리)
+- `application.yaml`을 공통 설정으로 재구성, `application-dev.yaml`(PostgreSQL) 프로파일 분리
+- 테스트는 기존 H2 in-memory 유지 (`testRuntimeOnly`)
+- DailyLog 엔티티: `@Lob` → `@Column(columnDefinition = "TEXT")` (PostgreSQL 호환)
+
+#### JWT 시크릿 환경변수 분리
+- `${JWT_SECRET:기본값}`, `${JWT_EXPIRATION:86400000}` 패턴 적용
+- 환경변수 미설정 시 개발용 기본값 사용, 프로덕션에서는 환경변수로 주입
+
+#### SpringDoc API 문서화
+- `springdoc-openapi-starter-webmvc-ui 2.8.5` 의존성 추가
+- `OpenApiConfig`: API 정보(제목, 버전, 설명) + JWT Bearer 인증 스키마 설정
+- `SecurityConfig`: Swagger 경로(`/swagger-ui/**`, `/v3/api-docs/**`) permitAll 추가
+- `@CurrentMemberId`에 `@Parameter(hidden = true)` 추가하여 Swagger UI에서 숨김
+- 6개 컨트롤러에 `@Tag` 어노테이션 추가 (인증, 회원, 일일 기록, 메모, 사진 기록, 음악 기록)
+- Swagger UI 접속: `http://localhost:8080/swagger-ui/index.html`
+
+#### 변경 파일
+| 구분 | 파일 |
+|------|------|
+| 수정 | `build.gradle`, `application.yaml`, `DailyLog.java`, `SecurityConfig.java`, `CurrentMemberId.java`, 6개 컨트롤러 |
+| 생성 | `application-dev.yaml`, `docker-compose.yaml`, `OpenApiConfig.java` |
+
+### Docker 컨테이너화
+- **PR**: (feat/infra-improvements → dev)
+- 전체 스택을 `docker compose up`으로 한 번에 기동할 수 있도록 컨테이너화
+
+#### 아키텍처
+```
+Browser → Nginx(3000:80)
+  ├── /api/*          → backend:8080 (reverse proxy)
+  ├── /swagger-ui/*   → backend:8080 (reverse proxy)
+  ├── /v3/api-docs/*  → backend:8080 (reverse proxy)
+  └── /*              → React 정적 파일 (SPA)
+```
+
+#### 백엔드 Dockerfile
+- 멀티스테이지 빌드: `gradle:8-jdk21` (빌드) → `eclipse-temurin:21-jre` (런타임)
+- Gradle 캐시 활용을 위해 빌드 설정 파일 먼저 복사 후 소스 복사
+
+#### 프론트엔드 Dockerfile + Nginx
+- 멀티스테이지 빌드: `node:22-alpine` (빌드) → `nginx:alpine` (런타임)
+- Nginx 설정: API/Swagger 리버스 프록시 + SPA `try_files` 라우팅 + gzip 압축
+- CORS 설정 변경 없이 동일 출처로 동작 (Nginx 리버스 프록시)
+
+#### docker-compose.yaml
+- `backend`: Dockerfile 빌드, `SPRING_DATASOURCE_URL`로 DB 호스트 오버라이드, postgres 헬스체크 의존
+- `frontend`: Nginx 기반, 포트 3000:80 매핑, backend 의존
+- `postgres`: `pg_isready` 헬스체크 추가
+
+#### 생성/수정 파일
+| 구분 | 파일 |
+|------|------|
+| 생성 | `Dockerfile`, `frontend/Dockerfile`, `frontend/nginx.conf`, `.dockerignore` |
+| 수정 | `docker-compose.yaml` |
+
+#### 실행 방법
+```bash
+docker compose build    # 이미지 빌드
+docker compose up -d    # 전체 스택 기동
+# http://localhost:3000  → 프론트엔드
+# http://localhost:3000/swagger-ui/index.html → Swagger UI (Nginx 프록시 경유)
+```
+
 ---
 
 ## 미구현 작업
@@ -194,8 +263,3 @@
 ### 프론트엔드
 - 프로필 수정 / 회원 탈퇴 페이지
 - 반응형 디자인 (모바일 대응)
-
-### 인프라
-- 프로덕션 DB 전환 (H2 → MySQL/PostgreSQL)
-- JWT secret 환경변수 분리
-- API 문서화 (Swagger/SpringDoc)

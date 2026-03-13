@@ -1,0 +1,49 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: mymo-postgres
+    environment:
+      POSTGRES_DB: mymo
+      POSTGRES_USER: mymo
+      POSTGRES_PASSWORD: mymo
+    ports:
+      - "5432:5432"
+    volumes:
+      - mymo-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mymo -d mymo"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mymo-backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/mymo
+      SPRING_DATASOURCE_USERNAME: mymo
+      SPRING_DATASOURCE_PASSWORD: mymo
+      SPRING_PROFILES_ACTIVE: dev
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: mymo-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  mymo-postgres-data:

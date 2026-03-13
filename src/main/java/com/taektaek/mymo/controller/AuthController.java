@@ -6,6 +6,7 @@ import com.taektaek.mymo.dto.member.MemberCreateRequest;
 import com.taektaek.mymo.dto.member.MemberResponse;
 import com.taektaek.mymo.service.AuthService;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "인증")
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {

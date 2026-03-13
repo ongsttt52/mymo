@@ -5,10 +5,12 @@ import com.taektaek.mymo.dto.member.MemberUpdateRequest;
 import com.taektaek.mymo.security.CurrentMemberId;
 import com.taektaek.mymo.service.MemberService;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(name = "회원")
 @RestController
 @RequestMapping("/api/members")
 public class MemberController {

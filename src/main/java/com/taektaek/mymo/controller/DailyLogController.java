@@ -6,6 +6,7 @@ import com.taektaek.mymo.dto.dailylog.DailyLogUpdateRequest;
 import com.taektaek.mymo.security.CurrentMemberId;
 import com.taektaek.mymo.service.DailyLogService;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Tag(name = "일일 기록")
 @RestController
 @RequestMapping("/api/daily-logs")
 public class DailyLogController {
