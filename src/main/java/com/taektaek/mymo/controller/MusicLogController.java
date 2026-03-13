@@ -1,5 +1,6 @@
 package com.taektaek.mymo.controller;
 
+import com.taektaek.mymo.dto.common.PagedResponse;
 import com.taektaek.mymo.dto.musiclog.MusicLogCreateRequest;
 import com.taektaek.mymo.dto.musiclog.MusicLogResponse;
 import com.taektaek.mymo.dto.musiclog.MusicLogUpdateRequest;
@@ -7,7 +8,6 @@ import com.taektaek.mymo.security.CurrentMemberId;
 import com.taektaek.mymo.service.MusicLogService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -38,10 +38,15 @@ public class MusicLogController {
   }
 
   @GetMapping
-  public ResponseEntity<List<MusicLogResponse>> getMusicLogsByMember(
-      @CurrentMemberId Long memberId) {
-    List<MusicLogResponse> responses = musicLogService.getMusicLogsByMember(memberId);
-    return ResponseEntity.ok(responses);
+  public ResponseEntity<PagedResponse<MusicLogResponse>> getMusicLogsByMember(
+      @CurrentMemberId Long memberId,
+      @RequestParam(required = false) String genre,
+      @RequestParam(required = false) String keyword,
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "20") int size) {
+    PagedResponse<MusicLogResponse> response =
+        musicLogService.searchMusicLogs(memberId, genre, keyword, page, size);
+    return ResponseEntity.ok(response);
   }
 
   @PutMapping("/{id}")

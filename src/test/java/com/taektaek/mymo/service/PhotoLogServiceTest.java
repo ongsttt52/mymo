@@ -3,11 +3,13 @@ package com.taektaek.mymo.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 import com.taektaek.mymo.domain.Member;
 import com.taektaek.mymo.domain.PhotoLog;
+import com.taektaek.mymo.dto.common.PagedResponse;
 import com.taektaek.mymo.dto.photolog.PhotoLogCreateRequest;
 import com.taektaek.mymo.dto.photolog.PhotoLogResponse;
 import com.taektaek.mymo.dto.photolog.PhotoLogUpdateRequest;
@@ -26,6 +28,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
@@ -149,6 +155,51 @@ class PhotoLogServiceTest {
 
       // then
       assertThat(responses).hasSize(2);
+    }
+  }
+
+  @Nested
+  @DisplayName("사진 기록 검색")
+  class SearchPhotoLogs {
+
+    @Test
+    @DisplayName("검색 조건 없이 페이징 조회한다")
+    void searchWithoutConditions() {
+      // given
+      Member member = createMember(1L);
+      List<PhotoLog> photoLogs = List.of(createPhotoLog(1L, "url1", "성수동", member));
+      Page<PhotoLog> page = new PageImpl<>(photoLogs, PageRequest.of(0, 12), 1);
+      given(
+              photoLogRepository.searchByMemberId(
+                  eq(1L), eq(null), eq(null), eq(null), any(Pageable.class)))
+          .willReturn(page);
+
+      // when
+      PagedResponse<PhotoLogResponse> response =
+          photoLogService.searchPhotoLogs(1L, null, null, null, 0, 12);
+
+      // then
+      assertThat(response.content()).hasSize(1);
+      assertThat(response.page()).isZero();
+      assertThat(response.totalElements()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("빈 키워드는 null로 정규화한다")
+    void normalizeBlankKeyword() {
+      // given
+      Page<PhotoLog> page = new PageImpl<>(List.of(), PageRequest.of(0, 12), 0);
+      given(
+              photoLogRepository.searchByMemberId(
+                  eq(1L), eq(null), eq(null), eq(null), any(Pageable.class)))
+          .willReturn(page);
+
+      // when
+      PagedResponse<PhotoLogResponse> response =
+          photoLogService.searchPhotoLogs(1L, null, null, "   ", 0, 12);
+
+      // then
+      assertThat(response.content()).isEmpty();
     }
   }
 

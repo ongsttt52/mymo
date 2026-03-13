@@ -3,11 +3,13 @@ package com.taektaek.mymo.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 import com.taektaek.mymo.domain.Member;
 import com.taektaek.mymo.domain.Memo;
+import com.taektaek.mymo.dto.common.PagedResponse;
 import com.taektaek.mymo.dto.memo.MemoCreateRequest;
 import com.taektaek.mymo.dto.memo.MemoResponse;
 import com.taektaek.mymo.dto.memo.MemoUpdateRequest;
@@ -25,6 +27,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
@@ -143,6 +149,45 @@ class MemoServiceTest {
       assertThat(responses).hasSize(2);
       assertThat(responses.get(0).content()).isEqualTo("메모1");
       assertThat(responses.get(1).content()).isEqualTo("메모2");
+    }
+  }
+
+  @Nested
+  @DisplayName("메모 검색")
+  class SearchMemos {
+
+    @Test
+    @DisplayName("검색 조건 없이 페이징 조회한다")
+    void searchWithoutConditions() {
+      // given
+      Member member = createMember(1L);
+      List<Memo> memos = List.of(createMemo(1L, "메모 내용", member));
+      Page<Memo> page = new PageImpl<>(memos, PageRequest.of(0, 20), 1);
+      given(memoRepository.searchByMemberId(eq(1L), eq(null), any(Pageable.class)))
+          .willReturn(page);
+
+      // when
+      PagedResponse<MemoResponse> response = memoService.searchMemos(1L, null, 0, 20);
+
+      // then
+      assertThat(response.content()).hasSize(1);
+      assertThat(response.page()).isZero();
+      assertThat(response.totalElements()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("빈 키워드는 null로 정규화한다")
+    void normalizeBlankKeyword() {
+      // given
+      Page<Memo> page = new PageImpl<>(List.of(), PageRequest.of(0, 20), 0);
+      given(memoRepository.searchByMemberId(eq(1L), eq(null), any(Pageable.class)))
+          .willReturn(page);
+
+      // when
+      PagedResponse<MemoResponse> response = memoService.searchMemos(1L, "   ", 0, 20);
+
+      // then
+      assertThat(response.content()).isEmpty();
     }
   }
 
