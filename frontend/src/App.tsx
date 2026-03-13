@@ -7,6 +7,7 @@ import SignupPage from './pages/SignupPage';
 import DashboardPage from './pages/DashboardPage';
 import DailyLogPage from './pages/DailyLogPage';
 import MemoPage from './pages/MemoPage';
+import PhotoLogPage from './pages/PhotoLogPage';
 import NotFoundPage from './pages/NotFoundPage';
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
                         <Route path="/dashboard" element={<DashboardPage />} />
                         <Route path="/daily-logs" element={<DailyLogPage />} />
                         <Route path="/memos" element={<MemoPage />} />
+                        <Route path="/photo-logs" element={<PhotoLogPage />} />
                     </Route>
                 </Route>
 
