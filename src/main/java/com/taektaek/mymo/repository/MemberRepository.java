@@ -1,17 +1,16 @@
 package com.taektaek.mymo.repository;
 
 import com.taektaek.mymo.domain.Member;
-import org.springframework.data.jpa.repository.JpaRepository;
-
 import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface MemberRepository extends JpaRepository<Member, Long> {
 
-    Optional<Member> findByUsername(String username);
+  Optional<Member> findByUsername(String username);
 
-    Optional<Member> findByEmail(String email);
+  Optional<Member> findByEmail(String email);
 
-    boolean existsByUsername(String username);
+  boolean existsByUsername(String username);
 
-    boolean existsByEmail(String email);
+  boolean existsByEmail(String email);
 }

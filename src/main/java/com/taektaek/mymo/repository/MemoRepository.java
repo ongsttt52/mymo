@@ -1,11 +1,10 @@
 package com.taektaek.mymo.repository;
 
 import com.taektaek.mymo.domain.Memo;
-import org.springframework.data.jpa.repository.JpaRepository;
-
 import java.util.List;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface MemoRepository extends JpaRepository<Memo, Long> {
 
-    List<Memo> findByMemberIdOrderByUpdatedAtDesc(Long memberId);
+  List<Memo> findByMemberIdOrderByUpdatedAtDesc(Long memberId);
 }
