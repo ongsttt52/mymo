@@ -1,5 +1,6 @@
 package com.taektaek.mymo.controller;
 
+import com.taektaek.mymo.dto.common.PagedResponse;
 import com.taektaek.mymo.dto.dailylog.DailyLogCreateRequest;
 import com.taektaek.mymo.dto.dailylog.DailyLogResponse;
 import com.taektaek.mymo.dto.dailylog.DailyLogUpdateRequest;
@@ -7,7 +8,8 @@ import com.taektaek.mymo.security.CurrentMemberId;
 import com.taektaek.mymo.service.DailyLogService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.util.List;
+import java.time.LocalDate;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -38,10 +40,18 @@ public class DailyLogController {
   }
 
   @GetMapping
-  public ResponseEntity<List<DailyLogResponse>> getDailyLogsByMember(
-      @CurrentMemberId Long memberId) {
-    List<DailyLogResponse> responses = dailyLogService.getDailyLogsByMember(memberId);
-    return ResponseEntity.ok(responses);
+  public ResponseEntity<PagedResponse<DailyLogResponse>> getDailyLogsByMember(
+      @CurrentMemberId Long memberId,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+          LocalDate startDate,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+          LocalDate endDate,
+      @RequestParam(required = false) String keyword,
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "20") int size) {
+    PagedResponse<DailyLogResponse> response =
+        dailyLogService.searchDailyLogs(memberId, startDate, endDate, keyword, page, size);
+    return ResponseEntity.ok(response);
   }
 
   @PutMapping("/{id}")

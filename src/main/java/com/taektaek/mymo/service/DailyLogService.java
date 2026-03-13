@@ -2,6 +2,7 @@ package com.taektaek.mymo.service;
 
 import com.taektaek.mymo.domain.DailyLog;
 import com.taektaek.mymo.domain.Member;
+import com.taektaek.mymo.dto.common.PagedResponse;
 import com.taektaek.mymo.dto.dailylog.DailyLogCreateRequest;
 import com.taektaek.mymo.dto.dailylog.DailyLogResponse;
 import com.taektaek.mymo.dto.dailylog.DailyLogUpdateRequest;
@@ -11,13 +12,19 @@ import com.taektaek.mymo.exception.MemberNotFoundException;
 import com.taektaek.mymo.exception.ResourceAccessDeniedException;
 import com.taektaek.mymo.repository.DailyLogRepository;
 import com.taektaek.mymo.repository.MemberRepository;
+import java.time.LocalDate;
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional(readOnly = true)
 public class DailyLogService {
+
+  private static final int MAX_PAGE_SIZE = 100;
 
   private final DailyLogRepository dailyLogRepository;
   private final MemberRepository memberRepository;
@@ -48,6 +55,20 @@ public class DailyLogService {
     return dailyLogRepository.findByMemberIdOrderByDateDesc(memberId).stream()
         .map(DailyLogResponse::from)
         .toList();
+  }
+
+  public PagedResponse<DailyLogResponse> searchDailyLogs(
+      Long memberId, LocalDate startDate, LocalDate endDate, String keyword, int page, int size) {
+    String normalizedKeyword = normalizeKeyword(keyword);
+    PageRequest pageRequest =
+        PageRequest.of(page, Math.min(size, MAX_PAGE_SIZE), Sort.by(Sort.Direction.DESC, "date"));
+
+    Page<DailyLogResponse> result =
+        dailyLogRepository
+            .searchByMemberId(memberId, startDate, endDate, normalizedKeyword, pageRequest)
+            .map(DailyLogResponse::from);
+
+    return PagedResponse.from(result);
   }
 
   @Transactional
@@ -83,5 +104,9 @@ public class DailyLogService {
     if (!dailyLog.getMember().getId().equals(memberId)) {
       throw new ResourceAccessDeniedException();
     }
+  }
+
+  private String normalizeKeyword(String keyword) {
+    return (keyword != null && !keyword.isBlank()) ? keyword.trim() : null;
   }
 }
