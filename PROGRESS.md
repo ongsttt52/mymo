@@ -180,6 +180,34 @@
 | `/photo-logs` | PhotoLogPage |
 | `/music-logs` | MusicLogPage |
 
+### 인프라 개선: PostgreSQL 전환 + JWT 환경변수 분리 + API 문서화
+- **PR**: (feat/infra-improvements → dev)
+- 프로덕션 대비 인프라 3종 개선
+
+#### PostgreSQL 전환 + Spring Profile 분리
+- H2 File DB → PostgreSQL 17 전환 (Docker Compose로 컨테이너 관리)
+- `application.yaml`을 공통 설정으로 재구성, `application-dev.yaml`(PostgreSQL) 프로파일 분리
+- 테스트는 기존 H2 in-memory 유지 (`testRuntimeOnly`)
+- DailyLog 엔티티: `@Lob` → `@Column(columnDefinition = "TEXT")` (PostgreSQL 호환)
+
+#### JWT 시크릿 환경변수 분리
+- `${JWT_SECRET:기본값}`, `${JWT_EXPIRATION:86400000}` 패턴 적용
+- 환경변수 미설정 시 개발용 기본값 사용, 프로덕션에서는 환경변수로 주입
+
+#### SpringDoc API 문서화
+- `springdoc-openapi-starter-webmvc-ui 2.8.5` 의존성 추가
+- `OpenApiConfig`: API 정보(제목, 버전, 설명) + JWT Bearer 인증 스키마 설정
+- `SecurityConfig`: Swagger 경로(`/swagger-ui/**`, `/v3/api-docs/**`) permitAll 추가
+- `@CurrentMemberId`에 `@Parameter(hidden = true)` 추가하여 Swagger UI에서 숨김
+- 6개 컨트롤러에 `@Tag` 어노테이션 추가 (인증, 회원, 일일 기록, 메모, 사진 기록, 음악 기록)
+- Swagger UI 접속: `http://localhost:8080/swagger-ui/index.html`
+
+#### 변경 파일
+| 구분 | 파일 |
+|------|------|
+| 수정 | `build.gradle`, `application.yaml`, `DailyLog.java`, `SecurityConfig.java`, `CurrentMemberId.java`, 6개 컨트롤러 |
+| 생성 | `application-dev.yaml`, `docker-compose.yaml`, `OpenApiConfig.java` |
+
 ---
 
 ## 미구현 작업
@@ -194,8 +222,3 @@
 ### 프론트엔드
 - 프로필 수정 / 회원 탈퇴 페이지
 - 반응형 디자인 (모바일 대응)
-
-### 인프라
-- 프로덕션 DB 전환 (H2 → MySQL/PostgreSQL)
-- JWT secret 환경변수 분리
-- API 문서화 (Swagger/SpringDoc)
