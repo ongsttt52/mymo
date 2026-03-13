@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 
 import { createMusicLog, getMusicLogs, updateMusicLog, deleteMusicLog } from '../api/musicLog';
@@ -9,37 +9,62 @@ import ErrorMessage from '../components/common/ErrorMessage';
 import PageHeader from '../components/common/PageHeader';
 import EmptyState from '../components/common/EmptyState';
 import ConfirmModal from '../components/common/ConfirmModal';
+import Pagination from '../components/common/Pagination';
+import SearchBar from '../components/common/SearchBar';
 import MusicLogList from '../components/musiclog/MusicLogList';
 import MusicLogFormModal from '../components/musiclog/MusicLogFormModal';
+
+const GENRE_OPTIONS = ['', 'K-Pop', 'Pop', 'Rock', 'Hip-Hop', 'R&B', 'Jazz', 'Classical', 'EDM', 'Indie'];
 
 function MusicLogPage() {
     const [logs, setLogs] = useState<MusicLogResponse[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
+    const [page, setPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+    const [totalElements, setTotalElements] = useState(0);
+    const [keyword, setKeyword] = useState('');
+    const [genre, setGenre] = useState('');
+
     const [formOpen, setFormOpen] = useState(false);
     const [editTarget, setEditTarget] = useState<MusicLogResponse | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<MusicLogResponse | null>(null);
     const [deleting, setDeleting] = useState(false);
 
-    const fetchLogs = async () => {
+    const fetchLogs = useCallback(async () => {
         setLoading(true);
         setError('');
         try {
-            const { data } = await getMusicLogs();
-            const sorted = [...data].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-            setLogs(sorted);
+            const { data } = await getMusicLogs({
+                page,
+                keyword: keyword || undefined,
+                genre: genre || undefined,
+            });
+            setLogs(data.content);
+            setTotalPages(data.totalPages);
+            setTotalElements(data.totalElements);
         } catch (err) {
             if (axios.isAxiosError(err) && err.response?.status === 401) return;
             setError('음악 기록을 불러오는 데 실패했습니다.');
         } finally {
             setLoading(false);
         }
-    };
+    }, [page, keyword, genre]);
 
     useEffect(() => {
         fetchLogs();
-    }, []);
+    }, [fetchLogs]);
+
+    const handleSearch = (value: string) => {
+        setKeyword(value);
+        setPage(0);
+    };
+
+    const handleGenreChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setGenre(e.target.value);
+        setPage(0);
+    };
 
     const handleCreate = () => {
         setEditTarget(null);
@@ -90,18 +115,38 @@ function MusicLogPage() {
         }
     };
 
-    if (loading) return <LoadingSpinner />;
+    if (loading && logs.length === 0) return <LoadingSpinner />;
     if (error && logs.length === 0) return <ErrorMessage message={error} onRetry={fetchLogs} />;
 
     return (
         <div>
-            {logs.length > 0 ? (
+            {logs.length > 0 || keyword || genre ? (
                 <>
-                    <PageHeader title="음악 기록" count={logs.length} actionLabel="새 음악" onAction={handleCreate} />
+                    <PageHeader title="음악 기록" count={totalElements} actionLabel="새 음악" onAction={handleCreate} />
+                    <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+                        <div className="flex-1">
+                            <SearchBar onSearch={handleSearch} placeholder="제목, 아티스트, 앨범에서 검색" />
+                        </div>
+                        <select
+                            value={genre}
+                            onChange={handleGenreChange}
+                            className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                        >
+                            <option value="">전체 장르</option>
+                            {GENRE_OPTIONS.filter(g => g).map(g => (
+                                <option key={g} value={g}>{g}</option>
+                            ))}
+                        </select>
+                    </div>
                     {error && (
                         <div className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">{error}</div>
                     )}
-                    <MusicLogList logs={logs} onEdit={handleEdit} onDelete={setDeleteTarget} />
+                    {logs.length > 0 ? (
+                        <MusicLogList logs={logs} onEdit={handleEdit} onDelete={setDeleteTarget} />
+                    ) : (
+                        <div className="py-12 text-center text-gray-500">검색 결과가 없습니다.</div>
+                    )}
+                    <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
                 </>
             ) : (
                 <EmptyState

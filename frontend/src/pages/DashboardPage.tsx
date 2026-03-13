@@ -48,10 +48,10 @@ function DashboardPage() {
             ]);
 
             setCounts({
-                dailyLogs: dailyLogs.data.length,
-                memos: memos.data.length,
-                photoLogs: photoLogs.data.length,
-                musicLogs: musicLogs.data.length,
+                dailyLogs: dailyLogs.data.totalElements,
+                memos: memos.data.totalElements,
+                photoLogs: photoLogs.data.totalElements,
+                musicLogs: musicLogs.data.totalElements,
             });
 
             setUsername(memberInfo.data.username);

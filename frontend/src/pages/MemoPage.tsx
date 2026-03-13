@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 
 import { createMemo, getMemos, updateMemo, deleteMemo } from '../api/memo';
@@ -9,6 +9,8 @@ import ErrorMessage from '../components/common/ErrorMessage';
 import PageHeader from '../components/common/PageHeader';
 import EmptyState from '../components/common/EmptyState';
 import ConfirmModal from '../components/common/ConfirmModal';
+import Pagination from '../components/common/Pagination';
+import SearchBar from '../components/common/SearchBar';
 import MemoGrid from '../components/memo/MemoGrid';
 import MemoFormModal from '../components/memo/MemoFormModal';
 
@@ -17,29 +19,43 @@ function MemoPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
+    const [page, setPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+    const [totalElements, setTotalElements] = useState(0);
+    const [keyword, setKeyword] = useState('');
+
     const [formOpen, setFormOpen] = useState(false);
     const [editTarget, setEditTarget] = useState<MemoResponse | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<MemoResponse | null>(null);
     const [deleting, setDeleting] = useState(false);
 
-    const fetchMemos = async () => {
+    const fetchMemos = useCallback(async () => {
         setLoading(true);
         setError('');
         try {
-            const { data } = await getMemos();
-            const sorted = [...data].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
-            setMemos(sorted);
+            const { data } = await getMemos({
+                page,
+                keyword: keyword || undefined,
+            });
+            setMemos(data.content);
+            setTotalPages(data.totalPages);
+            setTotalElements(data.totalElements);
         } catch (err) {
             if (axios.isAxiosError(err) && err.response?.status === 401) return;
             setError('메모를 불러오는 데 실패했습니다.');
         } finally {
             setLoading(false);
         }
-    };
+    }, [page, keyword]);
 
     useEffect(() => {
         fetchMemos();
-    }, []);
+    }, [fetchMemos]);
+
+    const handleSearch = (value: string) => {
+        setKeyword(value);
+        setPage(0);
+    };
 
     const handleCreate = () => {
         setEditTarget(null);
@@ -82,18 +98,26 @@ function MemoPage() {
         }
     };
 
-    if (loading) return <LoadingSpinner />;
+    if (loading && memos.length === 0) return <LoadingSpinner />;
     if (error && memos.length === 0) return <ErrorMessage message={error} onRetry={fetchMemos} />;
 
     return (
         <div>
-            {memos.length > 0 ? (
+            {memos.length > 0 || keyword ? (
                 <>
-                    <PageHeader title="메모" count={memos.length} actionLabel="새 메모" onAction={handleCreate} />
+                    <PageHeader title="메모" count={totalElements} actionLabel="새 메모" onAction={handleCreate} />
+                    <div className="mb-4">
+                        <SearchBar onSearch={handleSearch} placeholder="메모 내용에서 검색" />
+                    </div>
                     {error && (
                         <div className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">{error}</div>
                     )}
-                    <MemoGrid memos={memos} onEdit={handleEdit} onDelete={setDeleteTarget} />
+                    {memos.length > 0 ? (
+                        <MemoGrid memos={memos} onEdit={handleEdit} onDelete={setDeleteTarget} />
+                    ) : (
+                        <div className="py-12 text-center text-gray-500">검색 결과가 없습니다.</div>
+                    )}
+                    <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
                 </>
             ) : (
                 <EmptyState
