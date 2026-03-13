@@ -40,7 +40,7 @@ function MemoFormModal({ open, onClose, onSubmit, editTarget }: MemoFormModalPro
     };
 
     return (
-        <Modal open={open} onClose={onClose} title={editTarget ? '메모 수정' : '새 메모'}>
+        <Modal open={open} onClose={onClose} title={editTarget ? '메모 수정' : '새 메모'} preventClose={loading}>
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                 {error && (
                     <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">{error}</div>
@@ -61,7 +61,8 @@ function MemoFormModal({ open, onClose, onSubmit, editTarget }: MemoFormModalPro
                     <button
                         type="button"
                         onClick={onClose}
-                        className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200"
+                        disabled={loading}
+                        className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 disabled:opacity-50"
                     >
                         취소
                     </button>

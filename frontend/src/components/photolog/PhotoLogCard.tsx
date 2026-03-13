@@ -30,7 +30,7 @@ function PhotoLogCard({ log, onEdit, onDelete }: PhotoLogCardProps) {
                     />
                 )}
 
-                <div className="absolute right-2 top-2 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                <div className="absolute right-2 top-2 flex gap-1 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
                     <button
                         onClick={() => onEdit(log)}
                         className="rounded-lg bg-white/90 px-2 py-1 text-xs text-gray-600 shadow-sm backdrop-blur-sm transition-colors hover:bg-white"

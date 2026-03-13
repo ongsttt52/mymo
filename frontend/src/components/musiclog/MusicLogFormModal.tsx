@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 
 import Modal from '../common/Modal';
 import FormField from '../common/FormField';
+import { getTodayString, isYouTubeUrl } from '../../utils/format';
 import type { MusicLogResponse } from '../../types/musicLog';
 
 interface MusicLogFormModalProps {
@@ -47,7 +48,7 @@ function MusicLogFormModal({ open, onClose, onSubmit, editTarget }: MusicLogForm
                 setGenre('');
                 setYoutubeUrl('');
                 setDescription('');
-                setDate(new Date().toISOString().split('T')[0]);
+                setDate(getTodayString());
             }
             setError('');
         }
@@ -56,6 +57,12 @@ function MusicLogFormModal({ open, onClose, onSubmit, editTarget }: MusicLogForm
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+
+        if (youtubeUrl && !isYouTubeUrl(youtubeUrl)) {
+            setError('YouTube URL은 youtube.com 또는 youtu.be 도메인이어야 합니다.');
+            return;
+        }
+
         setLoading(true);
 
         try {
@@ -78,7 +85,7 @@ function MusicLogFormModal({ open, onClose, onSubmit, editTarget }: MusicLogForm
     };
 
     return (
-        <Modal open={open} onClose={onClose} title={editTarget ? '음악 기록 수정' : '새 음악 기록'}>
+        <Modal open={open} onClose={onClose} title={editTarget ? '음악 기록 수정' : '새 음악 기록'} preventClose={loading}>
             <form onSubmit={handleSubmit} className="flex max-h-[70vh] flex-col gap-4 overflow-y-auto">
                 {error && (
                     <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">{error}</div>
@@ -150,7 +157,8 @@ function MusicLogFormModal({ open, onClose, onSubmit, editTarget }: MusicLogForm
                     <button
                         type="button"
                         onClick={onClose}
-                        className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200"
+                        disabled={loading}
+                        className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 disabled:opacity-50"
                     >
                         취소
                     </button>

@@ -1,5 +1,5 @@
 import type { MusicLogResponse } from '../../types/musicLog';
-import { formatDate } from '../../utils/format';
+import { formatDate, isYouTubeUrl } from '../../utils/format';
 
 interface MusicLogCardProps {
     log: MusicLogResponse;
@@ -14,7 +14,7 @@ function MusicLogCard({ log, onEdit, onDelete }: MusicLogCardProps) {
                 <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                         <h3 className="truncate text-base font-semibold text-gray-900">{log.title}</h3>
-                        {log.youtubeUrl && (
+                        {log.youtubeUrl && isYouTubeUrl(log.youtubeUrl) && (
                             <a
                                 href={log.youtubeUrl}
                                 target="_blank"

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 
 import Modal from '../common/Modal';
 import FormField from '../common/FormField';
+import { getTodayString, isValidHttpsUrl } from '../../utils/format';
 import type { PhotoLogResponse } from '../../types/photoLog';
 
 interface PhotoLogFormModalProps {
@@ -31,7 +32,7 @@ function PhotoLogFormModal({ open, onClose, onSubmit, editTarget }: PhotoLogForm
                 setImageUrl('');
                 setLocation('');
                 setDescription('');
-                setDate(new Date().toISOString().split('T')[0]);
+                setDate(getTodayString());
             }
             setError('');
             setPreviewError(false);
@@ -43,9 +44,18 @@ function PhotoLogFormModal({ open, onClose, onSubmit, editTarget }: PhotoLogForm
         setPreviewError(false);
     };
 
+    // https URL이고 유효한 형태일 때만 미리보기 표시
+    const showPreview = imageUrl && !previewError && isValidHttpsUrl(imageUrl);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+
+        if (!isValidHttpsUrl(imageUrl)) {
+            setError('이미지 URL은 https://로 시작해야 합니다.');
+            return;
+        }
+
         setLoading(true);
 
         try {
@@ -65,7 +75,7 @@ function PhotoLogFormModal({ open, onClose, onSubmit, editTarget }: PhotoLogForm
     };
 
     return (
-        <Modal open={open} onClose={onClose} title={editTarget ? '사진 기록 수정' : '새 사진 기록'}>
+        <Modal open={open} onClose={onClose} title={editTarget ? '사진 기록 수정' : '새 사진 기록'} preventClose={loading}>
             <form onSubmit={handleSubmit} className="flex max-h-[70vh] flex-col gap-4 overflow-y-auto">
                 {error && (
                     <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">{error}</div>
@@ -81,7 +91,7 @@ function PhotoLogFormModal({ open, onClose, onSubmit, editTarget }: PhotoLogForm
                     required
                 />
 
-                {imageUrl && !previewError && (
+                {showPreview && (
                     <div className="overflow-hidden rounded-lg border border-gray-200">
                         <img
                             src={imageUrl}
@@ -122,7 +132,8 @@ function PhotoLogFormModal({ open, onClose, onSubmit, editTarget }: PhotoLogForm
                     <button
                         type="button"
                         onClick={onClose}
-                        className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200"
+                        disabled={loading}
+                        className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 disabled:opacity-50"
                     >
                         취소
                     </button>

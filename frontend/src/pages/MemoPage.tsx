@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { AxiosError } from 'axios';
+import axios from 'axios';
 
 import { createMemo, getMemos, updateMemo, deleteMemo } from '../api/memo';
 import type { MemoResponse } from '../types/memo';
@@ -27,11 +27,10 @@ function MemoPage() {
         setError('');
         try {
             const { data } = await getMemos();
-            // 최신 수정순 정렬
-            data.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
-            setMemos(data);
+            const sorted = [...data].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+            setMemos(sorted);
         } catch (err) {
-            if (err instanceof AxiosError && err.response?.status === 401) return;
+            if (axios.isAxiosError(err) && err.response?.status === 401) return;
             setError('메모를 불러오는 데 실패했습니다.');
         } finally {
             setLoading(false);
@@ -61,8 +60,10 @@ function MemoPage() {
             }
             await fetchMemos();
         } catch (err) {
-            const axiosError = err as AxiosError<ErrorResponse>;
-            throw new Error(axiosError.response?.data?.message ?? '저장에 실패했습니다.');
+            if (axios.isAxiosError<ErrorResponse>(err)) {
+                throw new Error(err.response?.data?.message ?? '저장에 실패했습니다.');
+            }
+            throw new Error('저장에 실패했습니다.');
         }
     };
 
@@ -75,6 +76,7 @@ function MemoPage() {
             await fetchMemos();
         } catch {
             setError('삭제에 실패했습니다.');
+            setDeleteTarget(null);
         } finally {
             setDeleting(false);
         }

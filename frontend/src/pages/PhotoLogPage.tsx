@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { AxiosError } from 'axios';
+import axios from 'axios';
 
 import { createPhotoLog, getPhotoLogs, updatePhotoLog, deletePhotoLog } from '../api/photoLog';
 import type { PhotoLogResponse } from '../types/photoLog';
@@ -27,10 +27,10 @@ function PhotoLogPage() {
         setError('');
         try {
             const { data } = await getPhotoLogs();
-            data.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-            setLogs(data);
+            const sorted = [...data].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+            setLogs(sorted);
         } catch (err) {
-            if (err instanceof AxiosError && err.response?.status === 401) return;
+            if (axios.isAxiosError(err) && err.response?.status === 401) return;
             setError('사진 기록을 불러오는 데 실패했습니다.');
         } finally {
             setLoading(false);
@@ -60,8 +60,10 @@ function PhotoLogPage() {
             }
             await fetchLogs();
         } catch (err) {
-            const axiosError = err as AxiosError<ErrorResponse>;
-            throw new Error(axiosError.response?.data?.message ?? '저장에 실패했습니다.');
+            if (axios.isAxiosError<ErrorResponse>(err)) {
+                throw new Error(err.response?.data?.message ?? '저장에 실패했습니다.');
+            }
+            throw new Error('저장에 실패했습니다.');
         }
     };
 
@@ -74,6 +76,7 @@ function PhotoLogPage() {
             await fetchLogs();
         } catch {
             setError('삭제에 실패했습니다.');
+            setDeleteTarget(null);
         } finally {
             setDeleting(false);
         }

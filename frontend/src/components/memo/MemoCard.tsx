@@ -24,7 +24,7 @@ function MemoCard({ memo, onEdit, onDelete }: MemoCardProps) {
                 )}
             </div>
 
-            <div className="absolute right-2 top-2 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+            <div className="absolute right-2 top-2 flex gap-1 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
                 <button
                     onClick={() => onEdit(memo)}
                     className="rounded-lg bg-white px-2 py-1 text-xs text-gray-500 shadow-sm transition-colors hover:bg-gray-100 hover:text-gray-700"

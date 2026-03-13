@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 
 import Modal from '../common/Modal';
 import FormField from '../common/FormField';
+import { getTodayString } from '../../utils/format';
 import type { DailyLogResponse } from '../../types/dailyLog';
 
 interface DailyLogFormModalProps {
@@ -25,7 +26,7 @@ function DailyLogFormModal({ open, onClose, onSubmit, editTarget }: DailyLogForm
                 setResolution(editTarget.resolution ?? '');
                 setReflection(editTarget.reflection ?? '');
             } else {
-                setDate(new Date().toISOString().split('T')[0]);
+                setDate(getTodayString());
                 setResolution('');
                 setReflection('');
             }
@@ -54,7 +55,7 @@ function DailyLogFormModal({ open, onClose, onSubmit, editTarget }: DailyLogForm
     };
 
     return (
-        <Modal open={open} onClose={onClose} title={editTarget ? '일일 기록 수정' : '새 일일 기록'}>
+        <Modal open={open} onClose={onClose} title={editTarget ? '일일 기록 수정' : '새 일일 기록'} preventClose={loading}>
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                 {error && (
                     <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">{error}</div>
@@ -67,7 +68,7 @@ function DailyLogFormModal({ open, onClose, onSubmit, editTarget }: DailyLogForm
                     value={date}
                     onChange={setDate}
                     required
-                    // 수정 시 날짜 변경 불가 (백엔드 UpdateRequest에 date 필드 없음)
+                    disabled={!!editTarget}
                 />
 
                 <FormField
@@ -94,7 +95,8 @@ function DailyLogFormModal({ open, onClose, onSubmit, editTarget }: DailyLogForm
                     <button
                         type="button"
                         onClick={onClose}
-                        className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200"
+                        disabled={loading}
+                        className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 disabled:opacity-50"
                     >
                         취소
                     </button>
