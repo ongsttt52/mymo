@@ -208,6 +208,47 @@
 | 수정 | `build.gradle`, `application.yaml`, `DailyLog.java`, `SecurityConfig.java`, `CurrentMemberId.java`, 6개 컨트롤러 |
 | 생성 | `application-dev.yaml`, `docker-compose.yaml`, `OpenApiConfig.java` |
 
+### Docker 컨테이너화
+- **PR**: (feat/infra-improvements → dev)
+- 전체 스택을 `docker compose up`으로 한 번에 기동할 수 있도록 컨테이너화
+
+#### 아키텍처
+```
+Browser → Nginx(3000:80)
+  ├── /api/*          → backend:8080 (reverse proxy)
+  ├── /swagger-ui/*   → backend:8080 (reverse proxy)
+  ├── /v3/api-docs/*  → backend:8080 (reverse proxy)
+  └── /*              → React 정적 파일 (SPA)
+```
+
+#### 백엔드 Dockerfile
+- 멀티스테이지 빌드: `gradle:8-jdk21` (빌드) → `eclipse-temurin:21-jre` (런타임)
+- Gradle 캐시 활용을 위해 빌드 설정 파일 먼저 복사 후 소스 복사
+
+#### 프론트엔드 Dockerfile + Nginx
+- 멀티스테이지 빌드: `node:22-alpine` (빌드) → `nginx:alpine` (런타임)
+- Nginx 설정: API/Swagger 리버스 프록시 + SPA `try_files` 라우팅 + gzip 압축
+- CORS 설정 변경 없이 동일 출처로 동작 (Nginx 리버스 프록시)
+
+#### docker-compose.yaml
+- `backend`: Dockerfile 빌드, `SPRING_DATASOURCE_URL`로 DB 호스트 오버라이드, postgres 헬스체크 의존
+- `frontend`: Nginx 기반, 포트 3000:80 매핑, backend 의존
+- `postgres`: `pg_isready` 헬스체크 추가
+
+#### 생성/수정 파일
+| 구분 | 파일 |
+|------|------|
+| 생성 | `Dockerfile`, `frontend/Dockerfile`, `frontend/nginx.conf`, `.dockerignore` |
+| 수정 | `docker-compose.yaml` |
+
+#### 실행 방법
+```bash
+docker compose build    # 이미지 빌드
+docker compose up -d    # 전체 스택 기동
+# http://localhost:3000  → 프론트엔드
+# http://localhost:3000/swagger-ui/index.html → Swagger UI (Nginx 프록시 경유)
+```
+
 ---
 
 ## 미구현 작업
